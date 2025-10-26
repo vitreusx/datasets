@@ -1,0 +1,13 @@
+md5: b96d67bdf5175eef2484252b30e4e7e3
+frozen: true
+deps:
+- checksum: '284166667532526793093775247551924119599'
+  size: 1999639040
+  hash: md5
+  path: 
+    https://web.archive.org/web/20250604190242if_/http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar
+outs:
+- hash: md5
+  path: VOCtrainval_11-May-2012.tar
+  md5: 6cd6e144f989b92b3379bac3b3de84fd
+  size: 1999639040

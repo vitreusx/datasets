@@ -1,0 +1,15 @@
+schema: '2.0'
+stages:
+  unpack:
+    cmd: tar xf VOCtrainval_11-May-2012.tar
+    deps:
+    - path: VOCtrainval_11-May-2012.tar
+      hash: md5
+      md5: 6cd6e144f989b92b3379bac3b3de84fd
+      size: 1999639040
+    outs:
+    - path: VOCdevkit
+      hash: md5
+      md5: c2b8807a3692c5366f645177a25bc046.dir
+      size: 1968207603
+      nfiles: 40178
