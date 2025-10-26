@@ -1,0 +1,13 @@
+md5: 55eb3e5e2b6350af25e0bab0b432464b
+frozen: true
+deps:
+- checksum: '"688eb5a3-5e717c100"'
+  size: 25351930112
+  hash: md5
+  path: 
+    https://dumps.wikimedia.org/enwiki/20250801/enwiki-20250801-pages-articles-multistream.xml.bz2
+outs:
+- hash: md5
+  path: enwiki-20250801-pages-articles-multistream.xml.bz2
+  md5: 3cf7832217960f66efe0f53f98f5d35f
+  size: 25351930112

@@ -1,0 +1,13 @@
+md5: 55d9fd6842db85c1dac164ffab437e69
+frozen: true
+deps:
+- checksum: '"688d1688-3b2dc9d"'
+  size: 62053533
+  hash: md5
+  path: 
+    https://dumps.wikimedia.org/frwiki/20250801/frwiki-20250801-pages-articles-multistream-index.txt.bz2
+outs:
+- hash: md5
+  path: frwiki-20250801-pages-articles-multistream-index.txt.bz2
+  md5: 9fab2095e313d8ce64797a4c9332360c
+  size: 62053533
