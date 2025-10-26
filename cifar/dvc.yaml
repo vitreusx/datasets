@@ -1,0 +1,9 @@
+stages:
+  unpack-10:
+    deps: [cifar-10-python.tar.gz]
+    cmd: tar xf cifar-10-python.tar.gz
+    outs: [cifar-10-batches-py]
+  unpack-100:
+    deps: [cifar-100-python.tar.gz]
+    cmd: tar xf cifar-100-python.tar.gz
+    outs: [cifar-100-python]

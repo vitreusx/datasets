@@ -1,0 +1,12 @@
+md5: 94b0758bb5ad389ab7274b71ad918d3c
+frozen: true
+deps:
+- checksum: '"a299817-46b8be548cc0f"'
+  size: 170498071
+  hash: md5
+  path: https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
+outs:
+- md5: c58f30108f718f92721af3b95e74349a
+  size: 170498071
+  hash: md5
+  path: cifar-10-python.tar.gz
