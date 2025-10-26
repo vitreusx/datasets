@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "dvc>=3.63.0",
+    "dvc-s3>=3.2.2",
 ]
 
 [tool.uv]

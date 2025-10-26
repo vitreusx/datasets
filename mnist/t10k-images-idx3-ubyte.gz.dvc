@@ -1,0 +1,12 @@
+md5: 559cd07adec5a6ffa5782670a6e3a872
+frozen: true
+deps:
+- checksum: '"9fb629c4189551a2d022fa330f9573f3"'
+  size: 1648877
+  hash: md5
+  path: https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz
+outs:
+- md5: 9fb629c4189551a2d022fa330f9573f3
+  size: 1648877
+  hash: md5
+  path: t10k-images-idx3-ubyte.gz
