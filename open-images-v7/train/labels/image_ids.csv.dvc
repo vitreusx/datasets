@@ -1,0 +1,13 @@
+md5: 507b5ddff7b1ebd9e679562ceb04e09f
+frozen: true
+deps:
+- checksum: '"a4ac0bcedb5c2df4d1b1230dc6b41b8f"'
+  size: 638407721
+  hash: md5
+  path: 
+    https://storage.googleapis.com/openimages/2018_04/train/train-images-boxable-with-rotation.csv
+outs:
+- md5: a4ac0bcedb5c2df4d1b1230dc6b41b8f
+  size: 638407721
+  hash: md5
+  path: image_ids.csv

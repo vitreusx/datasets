@@ -1,0 +1,5 @@
+outs:
+- md5: fa69369843fcf6e294d9195aeed1f2c6
+  size: 806943628
+  hash: md5
+  path: segmentations.csv

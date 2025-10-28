@@ -1,0 +1,13 @@
+md5: bdcc408891040875b79071ee11738a5f
+frozen: true
+deps:
+- checksum: '"707198de1a855cefde26d3fe35f7a6ce"'
+  size: 8752779
+  hash: md5
+  path: 
+    https://storage.googleapis.com/openimages/v5/test-annotations-object-segmentation.csv
+outs:
+- md5: 707198de1a855cefde26d3fe35f7a6ce
+  size: 8752779
+  hash: md5
+  path: segmentations.csv

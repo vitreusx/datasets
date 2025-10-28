@@ -1,0 +1,11 @@
+md5: f37323c2aa7e6d8942942ad62d38b3d0
+frozen: true
+deps:
+- md5: 8d4337c6b14d8510e661928ea65f7a10.dir
+  size: 38860770851
+  nfiles: 125436
+  hash: md5
+  path: remote://open-images-v7/test
+outs:
+- hash: md5
+  path: data

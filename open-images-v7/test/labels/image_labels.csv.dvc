@@ -1,0 +1,13 @@
+md5: 2f31f7541e292e9a32368ab352d9c507
+frozen: true
+deps:
+- checksum: '"207ed0ce2755ad5a689c8eb6eeb039bf"'
+  size: 32055857
+  hash: md5
+  path: 
+    https://storage.googleapis.com/openimages/v5/test-annotations-human-imagelabels-boxable.csv
+outs:
+- md5: 207ed0ce2755ad5a689c8eb6eeb039bf
+  size: 32055857
+  hash: md5
+  path: image_labels.csv

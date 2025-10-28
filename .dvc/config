@@ -1,0 +1,3 @@
+['remote "open-images-v7"']
+    url = s3://open-images-dataset
+    allow_anonymous_login = true

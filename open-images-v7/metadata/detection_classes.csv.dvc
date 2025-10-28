@@ -1,0 +1,5 @@
+outs:
+- md5: c5e7cb6b85d0539b2105db2d1974681f
+  size: 12064
+  hash: md5
+  path: detection_classes.csv

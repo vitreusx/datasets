@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+set -e
+
+split="train"
+group="$1"
+
+wget -O "${group}.zip" \
+    "https://storage.googleapis.com/openimages/v5/${split}-masks/${split}-masks-${group}.zip"
+unzip -q -d ${group} "${group}.zip"
+rm "${group}.zip"

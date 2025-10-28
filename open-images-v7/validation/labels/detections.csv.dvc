@@ -1,0 +1,13 @@
+md5: cfffd9ac2a8dedf886ad1505d1af0fdd
+frozen: true
+deps:
+- checksum: '"c5e8200df129ea6867e913e8b21fcab9"'
+  size: 25105048
+  hash: md5
+  path: 
+    https://storage.googleapis.com/openimages/v5/validation-annotations-bbox.csv
+outs:
+- md5: c5e8200df129ea6867e913e8b21fcab9
+  size: 25105048
+  hash: md5
+  path: detections.csv

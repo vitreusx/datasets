@@ -1,0 +1,130 @@
+schema: '2.0'
+stages:
+  get_masks@2:
+    cmd: ./get-masks "2"
+    outs:
+    - path: '2'
+      hash: md5
+      md5: a3f37b69b7f086e0ac49701d07aa9a8d.dir
+      size: 357850707
+      nfiles: 170018
+  get_masks@3:
+    cmd: ./get-masks "3"
+    outs:
+    - path: '3'
+      hash: md5
+      md5: e4f3ce79f65cf822d1d9748ee3df0b01.dir
+      size: 354411587
+      nfiles: 169531
+  get_masks@7:
+    cmd: ./get-masks "7"
+    outs:
+    - path: '7'
+      hash: md5
+      md5: 88116cb51afa32ea218e757d1f1b5ddc.dir
+      size: 345352470
+      nfiles: 164772
+  get_masks@8:
+    cmd: ./get-masks "8"
+    outs:
+    - path: '8'
+      hash: md5
+      md5: 304b6f87e6868f946dd0d29aac67bbac.dir
+      size: 345263065
+      nfiles: 165122
+  get_masks@4:
+    cmd: ./get-masks "4"
+    outs:
+    - path: '4'
+      hash: md5
+      md5: e039c3a3a7fef8bc93257ab337145394.dir
+      size: 348637957
+      nfiles: 166273
+  get_masks@0:
+    cmd: ./get-masks "0"
+    outs:
+    - path: '0'
+      hash: md5
+      md5: 326ec6d271f5f57c54183ce38893e4ea.dir
+      size: 483307458
+      nfiles: 228293
+  get_masks@b:
+    cmd: ./get-masks "b"
+    outs:
+    - path: b
+      hash: md5
+      md5: 1edf3f12be886951160cdde9d598cc62.dir
+      size: 341211134
+      nfiles: 164478
+  get_masks@e:
+    cmd: ./get-masks "e"
+    outs:
+    - path: e
+      hash: md5
+      md5: 9fdf305f04c65d3eb9552451d04619f6.dir
+      size: 300524548
+      nfiles: 145381
+  get_masks@d:
+    cmd: ./get-masks "d"
+    outs:
+    - path: d
+      hash: md5
+      md5: 2466a261297dc4cc84c7b15e806f8ee2.dir
+      size: 342535733
+      nfiles: 164939
+  get_masks@a:
+    cmd: ./get-masks "a"
+    outs:
+    - path: a
+      hash: md5
+      md5: 009845d5939441e454573317ffe0f2d9.dir
+      size: 344098611
+      nfiles: 164885
+  get_masks@f:
+    cmd: ./get-masks "f"
+    outs:
+    - path: f
+      hash: md5
+      md5: 6176b342eda1e9915a4a14e73fe1336f.dir
+      size: 298402300
+      nfiles: 144870
+  get_masks@c:
+    cmd: ./get-masks "c"
+    outs:
+    - path: c
+      hash: md5
+      md5: 6fccd0f632087d3a071a18c0de825522.dir
+      size: 341700746
+      nfiles: 164622
+  get_masks@6:
+    cmd: ./get-masks "6"
+    outs:
+    - path: '6'
+      hash: md5
+      md5: 10ea1ae0eafb0a3ca1498cbe3a5fc770.dir
+      size: 347694283
+      nfiles: 167098
+  get_masks@5:
+    cmd: ./get-masks "5"
+    outs:
+    - path: '5'
+      hash: md5
+      md5: f416b843d1821005a35fe54443a52e28.dir
+      size: 344134753
+      nfiles: 164495
+  get_masks@9:
+    cmd: ./get-masks "9"
+    outs:
+    - path: '9'
+      hash: md5
+      md5: f512bf11f0ab95d93a7bd3ca61569a5d.dir
+      size: 341931242
+      nfiles: 164669
+  get_masks@1:
+    cmd: ./get-masks "1"
+    outs:
+    - path: '1'
+      hash: md5
+      md5: f00f0877a287d77457408df53e3dcb14.dir
+      size: 374413478
+      nfiles: 177220

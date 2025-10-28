@@ -1,0 +1,13 @@
+md5: e31fc72546e1c018498461ef8a6a32d2
+frozen: true
+deps:
+- checksum: '"d832feb775b3cb78077bf8ae350adce5"'
+  size: 45227339
+  hash: md5
+  path: 
+    https://storage.googleapis.com/openimages/2018_04/test/test-images-with-rotation.csv
+outs:
+- md5: d832feb775b3cb78077bf8ae350adce5
+  size: 45227339
+  hash: md5
+  path: image_ids.csv

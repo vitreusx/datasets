@@ -1,0 +1,11 @@
+md5: 30c15b8a0bf973271a2b1c6bd2be2b23
+frozen: true
+deps:
+- md5: 28cb028b47d3dc295e5abf5cf58b1ff3.dir
+  size: 550619457914
+  nfiles: 1743042
+  hash: md5
+  path: remote://open-images-v7/train
+outs:
+- hash: md5
+  path: data
