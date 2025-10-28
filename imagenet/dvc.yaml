@@ -1,0 +1,11 @@
+# stages:
+#   download:
+#     cmd: echo "Download the file manually from https://www.kaggle.com/competitions/imagenet-object-localization-challenge/data"
+#     outs:
+#       - imagenet-object-localization-challenge.zip
+#   unpack:
+#     deps:
+#       - imagenet-object-localization-challenge.zip
+#     cmd: unzip -q -d data imagenet-object-localization-challenge.zip
+#     outs:
+#       - data

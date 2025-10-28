@@ -3,6 +3,8 @@ import numpy as np
 from pathlib import Path
 from typing import Literal
 from PIL import Image
+from ruamel.yaml import YAML
+from .meta import ClsMeta
 
 
 class CIFAR10:
@@ -49,6 +51,13 @@ class CIFAR10:
         label = self.labels[index]
         return {"image": image, "label": label}
 
+    @staticmethod
+    def meta():
+        yaml = YAML(typ="safe", pure=True)
+        with open(Path(__file__).parent / "cifar10.yml", "r") as f:
+            data = yaml.load(f)
+        return ClsMeta(data)
+
 
 class CIFAR100:
     """CIFAR-100 dataset.
@@ -84,3 +93,17 @@ class CIFAR100:
         image = Image.fromarray(self.images[index])
         label = self.labels[index]
         return {"image": image, "label": label}
+
+    @staticmethod
+    def meta():
+        yaml = YAML(typ="safe", pure=True)
+        with open(Path(__file__).parent / "cifar10.yml", "r") as f:
+            data = yaml.load(f)
+
+        return ClsMeta(
+            {
+                "classes": {
+                    label: item["class"] for label, item in data["classes"].items()
+                }
+            }
+        )
