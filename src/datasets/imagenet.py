@@ -4,7 +4,8 @@ from typing import Literal
 import pandas as pd
 from PIL import Image
 
-from rsrch.data.meta import ClsMeta
+from .meta import ClsMeta
+import xml.etree.ElementTree as ET
 
 
 def _get_label_names(loc_synset_mapping_txt: str | Path):
@@ -28,22 +29,26 @@ class ImageNet:
     ```
     <data_root>/
     ├── ILSVRC/
-    │   ├── Data/
-    │   │   └── CLS-LOC/
-    │   │       ├── train/
-    │   │       │   └── {wnid}/
-    │   │       │       └── {wnid}_{img_id}.JPEG
-    │   │       ├── val/
-    │   │       │   └── {img_id}.JPEG
-    │   │       └── test/
-    │   │           └── {img_id}.JPEG
-    │   └── ImageSets/ # Item lists
-    │       └── CLS-LOC/
-    │           ├── train_cls.txt
-    │           ├── val.txt
-    │           └── test.txt
-    ├── LOC_synset_mapping.txt # A list of labels with WordNet IDs
-    └── LOC_val_solution.csv   # An assignment of labels for val set
+    │   ├── Annotations/CLS-LOC/
+    │   │   ├── train/
+    │   │   │   └── {wnid}/
+    │   │   │       └── {img_id}.xml
+    │   │   └── val/
+    │   │       └── {img_id}.xml
+    │   ├── Data/CLS-LOC/
+    │   │   ├── train/
+    │   │   │   └── {wnid}/
+    │   │   │       └── {img_id}.JPEG
+    │   │   ├── val/
+    │   │   │   └── {img_id}.JPEG
+    │   │   └── test/
+    │   │       └── {img_id}.JPEG
+    │   └── ImageSets/CLS-LOC/
+    │       ├── train_cls.txt
+    │       ├── train_loc.txt
+    │       ├── val.txt
+    │       └── test.txt
+    └── LOC_synset_mapping.txt     # A list of labels with WordNet IDs
     ```
     """
 
@@ -55,12 +60,14 @@ class ImageNet:
         super().__init__()
         self.root = Path(root).expanduser()
         self.split = split
+
         self.img_root = self.root / "ILSVRC/Data/CLS-LOC" / split
+        self.ann_root = self.root / "ILSVRC/Annotations/CLS-LOC" / split
 
         cls_lists = {"train": "train_cls.txt", "val": "val.txt", "test": "test.txt"}
         cls_list = self.root / "ILSVRC/ImageSets/CLS-LOC" / cls_lists[split]
 
-        self._paths: list[Path] = []
+        self._paths: list[str] = []
         with open(cls_list, "r") as f:
             for line in f:
                 path, index = line.strip().split(" ")
@@ -68,40 +75,32 @@ class ImageNet:
                     raise RuntimeError("Invalid class order")
                 self._paths.append(path)
 
-        if split in ("train", "val"):
-            wnid_to_label = {}
-            with open(self.root / "LOC_synset_mapping.txt", "r") as f:
-                for line in f:
-                    line = line.strip()
-                    pos = line.index(" ")
-                    wnid = line[:pos]
-                    wnid_to_label[wnid] = len(wnid_to_label)
-
-            if split == "train":
-                self._labels = [
-                    wnid_to_label[path.split("/")[0]] for path in self._paths
-                ]
-            elif split == "val":
-                val_loc = pd.read_csv(self.root / "LOC_val_solution.csv")
-                path_to_label = {}
-                for _, row in val_loc.iterrows():
-                    pred_s = row["PredictionString"]
-                    wnid = pred_s[: pred_s.find(" ")]
-                    label = wnid_to_label[wnid]
-                    path_to_label[row["ImageId"]] = label
-                self._labels = [path_to_label[p] for p in self._paths]
+        self.wnid_to_label = {}
+        with open(self.root / "LOC_synset_mapping.txt", "r") as f:
+            for label, line in enumerate(f):
+                line = line.strip()
+                pos = line.index(" ")
+                wnid = line[:pos]
+                self.wnid_to_label[wnid] = label
 
     def __len__(self):
         return len(self._paths)
 
     def __getitem__(self, idx: int):
         path = self._paths[idx]
-        img_path = (self.img_root / path).with_suffix(".JPEG")
+        img_path = self.img_root / (path + ".JPEG")
         img = Image.open(img_path).convert("RGB")
-        if self.split == "test":
+
+        if self.split == "train":
+            label = img_path.parents[1].name
+            return {"image": img, "label": label}
+        elif self.split == "val":
+            with open(self.ann_root / (path + ".xml"), "r") as f:
+                ann = ET.parse(f)
+                label = self.wnid_to_label[ann.find(".//object/name").text]
+            return {"image": img, "label": label}
+        elif self.split == "test":
             return img
-        else:
-            return {"image": img, "label": self._labels[idx]}
 
     def meta(self):
         loc_synset_mapping_txt = self.root / "LOC_synset_mapping.txt"

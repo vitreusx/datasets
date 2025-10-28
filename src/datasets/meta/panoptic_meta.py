@@ -5,9 +5,9 @@ from typing import TypedDict
 import numpy as np
 from ruamel.yaml import YAML
 
-from rsrch.utils.colors import hex2rgb
 
 from .utils import is_contiguous, typed_cache
+from .colors import hex2rgb
 
 
 class PanopticLabelInfo(TypedDict):

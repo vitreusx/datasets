@@ -217,4 +217,6 @@ __marimo__/
 .streamlit/secrets.toml
 # >>> Python.gitignore
 
+*.ipynb
+
 # DVC ignores

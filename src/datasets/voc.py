@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Literal
 
 from PIL import Image
+from .meta import seg_meta
 
 
 class VOCSegmentation(Sequence):
@@ -51,3 +52,7 @@ class VOCSegmentation(Sequence):
         seg_map_path = self.root / "SegmentationClass" / f"{id}.png"
         seg_map = Image.open(seg_map_path)
         return {"image": image, "labels": seg_map}
+
+    @staticmethod
+    def meta():
+        return seg_meta(Path(__file__).parent / "voc.yml")
