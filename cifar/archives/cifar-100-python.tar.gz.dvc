@@ -1,0 +1,5 @@
+outs:
+- md5: eb9058c3a382ffc7106e4002c42a8d85
+  size: 169001437
+  hash: md5
+  path: cifar-100-python.tar.gz
