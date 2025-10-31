@@ -1,0 +1,13 @@
+stages:
+  all_sequences:
+    deps:
+      - archives/all_sequences.zip
+    cmd: ./scripts/unpack all_sequences
+    outs:
+      - all_sequences
+  all_calib_sequences:
+    deps:
+      - archives/all_calib_sequences.zip
+    cmd: ./scripts/unpack all_calib_sequences
+    outs:
+      - all_calib_sequences

@@ -1,0 +1,12 @@
+md5: abdf2d445071bd75186f198b4b5eec4f
+frozen: true
+deps:
+- checksum: '"3277387ba-5363f84960520"'
+  size: 13546784698
+  hash: md5
+  path: https://vision.in.tum.de/mono/all_calib_sequences.zip
+outs:
+- md5: 22c0a23604b6387d0e3b03d4abdbed23
+  size: 13546784698
+  hash: md5
+  path: all_calib_sequences.zip

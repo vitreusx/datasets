@@ -1,0 +1,12 @@
+md5: debcc35f1e09d1757370c3eb26652db1
+frozen: true
+deps:
+- checksum: '"aaf894dc4-534c195dda3c7"'
+  size: 45894684100
+  hash: md5
+  path: https://vision.in.tum.de/mono/all_sequences.zip
+outs:
+- hash: md5
+  path: all_sequences.zip
+  md5: ba4a823fc3ed8b4d2c4ec66aae68ba61
+  size: 45894684100

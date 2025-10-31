@@ -1,0 +1,28 @@
+schema: '2.0'
+stages:
+  all_calib_sequences:
+    cmd: ./scripts/unpack all_calib_sequences
+    deps:
+    - path: archives/all_calib_sequences.zip
+      hash: md5
+      md5: 22c0a23604b6387d0e3b03d4abdbed23
+      size: 13546784698
+    outs:
+    - path: all_calib_sequences
+      hash: md5
+      md5: 9dc4eda2ce2a76f8ee363294b186716f.dir
+      size: 13785545994
+      nfiles: 36191
+  all_sequences:
+    cmd: ./scripts/unpack all_sequences
+    deps:
+    - path: archives/all_sequences.zip
+      hash: md5
+      md5: ba4a823fc3ed8b4d2c4ec66aae68ba61
+      size: 45894684100
+    outs:
+    - path: all_sequences
+      hash: md5
+      md5: 8600c037cbcdedfd6b7fc5b49eaa2be3.dir
+      size: 47725695142
+      nfiles: 190878
