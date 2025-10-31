@@ -1,28 +1,28 @@
 schema: '2.0'
 stages:
   unpack@t10k-images-idx3-ubyte:
-    cmd: gunzip -k t10k-images-idx3-ubyte.gz
+    cmd: gunzip -c archives/t10k-images-idx3-ubyte.gz >t10k-images-idx3-ubyte
     outs:
     - path: t10k-images-idx3-ubyte
       hash: md5
       md5: 2646ac647ad5339dbf082846283269ea
       size: 7840016
   unpack@t10k-labels-idx1-ubyte:
-    cmd: gunzip -k t10k-labels-idx1-ubyte.gz
+    cmd: gunzip -c archives/t10k-labels-idx1-ubyte.gz >t10k-labels-idx1-ubyte
     outs:
     - path: t10k-labels-idx1-ubyte
       hash: md5
       md5: 27ae3e4e09519cfbb04c329615203637
       size: 10008
   unpack@train-images-idx3-ubyte:
-    cmd: gunzip -k train-images-idx3-ubyte.gz
+    cmd: gunzip -c archives/train-images-idx3-ubyte.gz >train-images-idx3-ubyte
     outs:
     - path: train-images-idx3-ubyte
       hash: md5
       md5: 6bbc9ace898e44ae57da46a324031adb
       size: 47040016
   unpack@train-labels-idx1-ubyte:
-    cmd: gunzip -k train-labels-idx1-ubyte.gz
+    cmd: gunzip -c archives/train-labels-idx1-ubyte.gz >train-labels-idx1-ubyte
     outs:
     - path: train-labels-idx1-ubyte
       hash: md5
