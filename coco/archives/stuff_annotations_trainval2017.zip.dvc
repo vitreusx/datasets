@@ -1,0 +1,13 @@
+md5: d2dcef1549cabee315fc5bb382cb241f
+frozen: true
+deps:
+- checksum: '"2a27c15a2dfcbd2e1c9276dc23cac101"'
+  size: 1148688564
+  hash: md5
+  path: 
+    http://images.cocodataset.org/annotations/stuff_annotations_trainval2017.zip
+outs:
+- hash: md5
+  path: stuff_annotations_trainval2017.zip
+  md5: 2a27c15a2dfcbd2e1c9276dc23cac101
+  size: 1148688564

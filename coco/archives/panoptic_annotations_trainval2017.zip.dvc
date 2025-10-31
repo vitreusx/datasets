@@ -1,0 +1,13 @@
+md5: 764f9c8d6bdf40506a91bdddb088dbbe
+frozen: true
+deps:
+- checksum: '"4170db65fc022c9c296af880dbca6055"'
+  size: 860725834
+  hash: md5
+  path: 
+    http://images.cocodataset.org/annotations/panoptic_annotations_trainval2017.zip
+outs:
+- hash: md5
+  path: panoptic_annotations_trainval2017.zip
+  md5: 4170db65fc022c9c296af880dbca6055
+  size: 860725834

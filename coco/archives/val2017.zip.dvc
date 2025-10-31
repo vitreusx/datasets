@@ -1,0 +1,12 @@
+md5: 14d334a04292ba9e63cff62a7781df36
+frozen: true
+deps:
+- checksum: '"d366be60d3dc737327160d62453e3973-98"'
+  size: 815585330
+  hash: md5
+  path: http://images.cocodataset.org/zips/val2017.zip
+outs:
+- hash: md5
+  path: val2017.zip
+  md5: 442b8da7639aecaf257c1dceb8ba8c80
+  size: 815585330

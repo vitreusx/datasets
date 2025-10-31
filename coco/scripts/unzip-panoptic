@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+unzip -q archives/panoptic_annotations_trainval2017.zip
+rm -r __MACOSX annotations/.DS_Store
+cd annotations
+for split in train val; do
+    unzip -q panoptic_${split}2017.zip
+    rm -r panoptic_${split}2017.zip
+done

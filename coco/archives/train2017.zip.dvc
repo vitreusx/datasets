@@ -1,0 +1,12 @@
+md5: fcec879016528e745d56d52514944f53
+frozen: true
+deps:
+- checksum: '"62ff7d7fbcc7e0c0604cbb0f9047ce77-2306"'
+  size: 19336861798
+  hash: md5
+  path: http://images.cocodataset.org/zips/train2017.zip
+outs:
+- hash: md5
+  path: train2017.zip
+  md5: cced6f7f71b7629ddf16f17bbcfab6b2
+  size: 19336861798

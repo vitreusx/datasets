@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+unzip -q archives/stuff_annotations_trainval2017.zip
+rm -r annotations/deprecated-challenge2017
+cd annotations
+for split in train val; do
+    unzip -q stuff_${split}2017_pixelmaps.zip
+    rm -r stuff_${split}2017_pixelmaps.zip
+done

@@ -1,0 +1,42 @@
+stages:
+  train:
+    deps:
+      - archives/train2017.zip
+    cmd: unzip -q archives/train2017.zip
+    outs:
+      - train2017
+  val:
+    deps:
+      - archives/val2017.zip
+    cmd: unzip -q archives/val2017.zip
+    outs:
+      - val2017
+  annotations:
+    deps:
+      - archives/annotations_trainval2017.zip
+    cmd: unzip -q archives/annotations_trainval2017.zip
+    outs:
+      - annotations/instances_train2017.json
+      - annotations/instances_val2017.json
+      - annotations/captions_train2017.json
+      - annotations/captions_val2017.json
+      - annotations/person_keypoints_train2017.json
+      - annotations/person_keypoints_val2017.json
+  panoptic:
+    deps:
+      - archives/panoptic_annotations_trainval2017.zip
+    cmd: scripts/unzip-panoptic
+    outs:
+      - annotations/panoptic_train2017.json
+      - annotations/panoptic_train2017
+      - annotations/panoptic_val2017.json
+      - annotations/panoptic_val2017
+  stuff:
+    deps:
+      - archives/stuff_annotations_trainval2017.zip
+    cmd: scripts/unzip-stuff
+    outs:
+      - annotations/stuff_train2017.json
+      - annotations/stuff_train2017_pixelmaps
+      - annotations/stuff_val2017.json
+      - annotations/stuff_val2017_pixelmaps

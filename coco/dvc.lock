@@ -1,0 +1,112 @@
+schema: '2.0'
+stages:
+  annotations:
+    cmd: unzip -q archives/annotations_trainval2017.zip
+    deps:
+    - path: archives/annotations_trainval2017.zip
+      hash: md5
+      md5: f4bbac642086de4f52a3fdda2de5fa2c
+      size: 252907541
+    outs:
+    - path: annotations/captions_train2017.json
+      hash: md5
+      md5: b38f1409d5b8c06fa359659a52b29313
+      size: 91865115
+    - path: annotations/captions_val2017.json
+      hash: md5
+      md5: b7bec29ab7bd8971ae4cafc2390a658f
+      size: 3872473
+    - path: annotations/instances_train2017.json
+      hash: md5
+      md5: 20542493efc7df5d9340522b7c87b06c
+      size: 469785474
+    - path: annotations/instances_val2017.json
+      hash: md5
+      md5: b681580a54b900b3cb44022fd1102ad5
+      size: 19987840
+    - path: annotations/person_keypoints_train2017.json
+      hash: md5
+      md5: 5b984e2799b655ed1b64f4b031c6e8c6
+      size: 238884731
+    - path: annotations/person_keypoints_val2017.json
+      hash: md5
+      md5: d8aeb684d43274aeac34740d72a34a5b
+      size: 10020657
+  panoptic:
+    cmd: scripts/unzip-panoptic
+    deps:
+    - path: archives/panoptic_annotations_trainval2017.zip
+      hash: md5
+      md5: 4170db65fc022c9c296af880dbca6055
+      size: 860725834
+    outs:
+    - path: annotations/panoptic_train2017
+      hash: md5
+      md5: c055691033abf2699b2b0983e842b45d.dir
+      size: 835499679
+      nfiles: 118287
+    - path: annotations/panoptic_train2017.json
+      hash: md5
+      md5: 0797171edbd1230ddc35f66bd5b1b7d7
+      size: 164622075
+    - path: annotations/panoptic_val2017
+      hash: md5
+      md5: 0869bb9c5410c45a1305657bee01757c.dir
+      size: 35169243
+      nfiles: 5000
+    - path: annotations/panoptic_val2017.json
+      hash: md5
+      md5: d8bd4a24da485028d501124ffa1ed3f3
+      size: 7005201
+  stuff:
+    cmd: scripts/unzip-stuff
+    deps:
+    - path: archives/stuff_annotations_trainval2017.zip
+      hash: md5
+      md5: 2a27c15a2dfcbd2e1c9276dc23cac101
+      size: 1148688564
+    outs:
+    - path: annotations/stuff_train2017.json
+      hash: md5
+      md5: a123446ec02c6d3b97a4274b870b039e
+      size: 1133263743
+    - path: annotations/stuff_train2017_pixelmaps
+      hash: md5
+      md5: 3f8cb388acc7a33118cd5af54868afc3.dir
+      size: 653990241
+      nfiles: 118287
+    - path: annotations/stuff_val2017.json
+      hash: md5
+      md5: 7a9c7c339839d89fc670e841ec8c7b2d
+      size: 48822426
+    - path: annotations/stuff_val2017_pixelmaps
+      hash: md5
+      md5: 3c3c930a75c8e5324844e7aab410644a.dir
+      size: 27505035
+      nfiles: 5000
+  val:
+    cmd: unzip -q archives/val2017.zip
+    deps:
+    - path: archives/val2017.zip
+      hash: md5
+      md5: 442b8da7639aecaf257c1dceb8ba8c80
+      size: 815585330
+    outs:
+    - path: val2017
+      hash: md5
+      md5: a0173f60761f977a5afe88aa2d75acb6.dir
+      size: 814705164
+      nfiles: 5000
+  train:
+    cmd: unzip -q archives/train2017.zip
+    deps:
+    - path: archives/train2017.zip
+      hash: md5
+      md5: cced6f7f71b7629ddf16f17bbcfab6b2
+      size: 19336861798
+    outs:
+    - path: train2017
+      hash: md5
+      md5: 107409cf0f5a123bade82b25cbfa38b8.dir
+      size: 19314466396
+      nfiles: 118287
