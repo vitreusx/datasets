@@ -3,3 +3,10 @@ outs:
   size: 28881
   hash: md5
   path: train-labels-idx1-ubyte.gz
+md5: 5e029f1839884fa8eedcf3a2850a665f
+frozen: true
+deps:
+- checksum: '"d53e105ee54ea40749a09fcbcd1e9432"'
+  size: 28881
+  hash: md5
+  path: remote://mnist/train-labels-idx1-ubyte.gz

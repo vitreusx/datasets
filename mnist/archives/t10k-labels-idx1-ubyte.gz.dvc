@@ -3,3 +3,10 @@ outs:
   size: 4542
   hash: md5
   path: t10k-labels-idx1-ubyte.gz
+md5: 032d10e54c0643c4444409ce3a8ccd13
+frozen: true
+deps:
+- checksum: '"ec29112dd5afa0611ce80d1b7f02629c"'
+  size: 4542
+  hash: md5
+  path: remote://mnist/t10k-labels-idx1-ubyte.gz

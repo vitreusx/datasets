@@ -3,3 +3,10 @@ outs:
   size: 169001437
   hash: md5
   path: cifar-100-python.tar.gz
+md5: 6658d2edafc6f9bee78e5c5d7934ee49
+frozen: true
+deps:
+- checksum: '"a12c1dd-47ffe10fc4937"'
+  size: 169001437
+  hash: md5
+  path: https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz

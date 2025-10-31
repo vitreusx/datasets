@@ -1,3 +1,5 @@
 ['remote "open-images-v7"']
     url = s3://open-images-dataset
     allow_anonymous_login = true
+['remote "mnist"']
+    url = https://ossci-datasets.s3.amazonaws.com/mnist

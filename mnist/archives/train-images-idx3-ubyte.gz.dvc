@@ -3,3 +3,10 @@ outs:
   size: 9912422
   hash: md5
   path: train-images-idx3-ubyte.gz
+md5: 7b97a135207b1314a9918bf1a5310d41
+frozen: true
+deps:
+- checksum: '"f68b3c2dcbeaaa9fbdd348bbdeb94873"'
+  size: 9912422
+  hash: md5
+  path: remote://mnist/train-images-idx3-ubyte.gz

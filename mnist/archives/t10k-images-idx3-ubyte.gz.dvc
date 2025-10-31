@@ -3,3 +3,10 @@ outs:
   size: 1648877
   hash: md5
   path: t10k-images-idx3-ubyte.gz
+md5: 84188fa10781776b491095b6825f25cd
+frozen: true
+deps:
+- checksum: '"9fb629c4189551a2d022fa330f9573f3"'
+  size: 1648877
+  hash: md5
+  path: remote://mnist/t10k-images-idx3-ubyte.gz
