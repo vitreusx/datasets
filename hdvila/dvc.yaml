@@ -1,0 +1,7 @@
+stages:
+  unpack:
+    deps:
+      - hdvila100m.zip
+    cmd: unzip -q hdvila100m.zip
+    outs:
+      - hdvila

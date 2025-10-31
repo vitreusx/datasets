@@ -1,0 +1,15 @@
+schema: '2.0'
+stages:
+  unpack:
+    cmd: unzip -q hdvila100m.zip
+    deps:
+    - path: hdvila100m.zip
+      hash: md5
+      md5: 0820eb1316132e744fac9e1c4c4ea3e1
+      size: 1241919766
+    outs:
+    - path: hdvila
+      hash: md5
+      md5: b7750f8cd76f5b07690ea84fd3c48991.dir
+      size: 8203912187
+      nfiles: 11

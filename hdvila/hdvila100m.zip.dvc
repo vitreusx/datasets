@@ -1,0 +1,13 @@
+md5: 4439601ecf1c20971014371dfd7dadd4
+frozen: true
+deps:
+- checksum: '"0x8DA58B6CF73E638"'
+  size: 1241919766
+  hash: md5
+  path: 
+    https://hdvila.blob.core.windows.net/dataset/hdvila100m.zip?sp=r&st=2022-06-28T03:33:11Z&se=2026-01-01T11:33:11Z&spr=https&sv=2021-06-08&sr=b&sig=VaqQkLFDqKinfkaPNs1jJ1EQIYCB%2FUPYiqFqmjWye6Y%3D
+outs:
+- md5: 0820eb1316132e744fac9e1c4c4ea3e1
+  size: 1241919766
+  hash: md5
+  path: hdvila100m.zip
