@@ -1,22 +1,9 @@
 schema: '2.0'
 stages:
-  unpack-10:
-    cmd: tar xf cifar-10-python.tar.gz
+  cifar100:
+    cmd: tar xf archives/cifar-100-python.tar.gz
     deps:
-    - path: cifar-10-python.tar.gz
-      hash: md5
-      md5: c58f30108f718f92721af3b95e74349a
-      size: 170498071
-    outs:
-    - path: cifar-10-batches-py
-      hash: md5
-      md5: 2c2c368a819f1df18fd0afa1c052c6c4.dir
-      size: 186214114
-      nfiles: 8
-  unpack-100:
-    cmd: tar xf cifar-100-python.tar.gz
-    deps:
-    - path: cifar-100-python.tar.gz
+    - path: archives/cifar-100-python.tar.gz
       hash: md5
       md5: eb9058c3a382ffc7106e4002c42a8d85
       size: 169001437
@@ -26,3 +13,16 @@ stages:
       md5: 03cb0ddfa7dd16f3cce9c2d9f9b7902d.dir
       size: 186301098
       nfiles: 4
+  cifar10:
+    cmd: tar xf archives/cifar-10-python.tar.gz
+    deps:
+    - path: archives/cifar-10-python.tar.gz
+      hash: md5
+      md5: c58f30108f718f92721af3b95e74349a
+      size: 170498071
+    outs:
+    - path: cifar-10-batches-py
+      hash: md5
+      md5: 2c2c368a819f1df18fd0afa1c052c6c4.dir
+      size: 186214114
+      nfiles: 8
