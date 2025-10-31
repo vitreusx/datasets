@@ -1,0 +1,13 @@
+md5: 2ecf686d4c66be684131fadd183e88e2
+frozen: true
+deps:
+- checksum: '"b125b2b1-5aa5b95787a80"'
+  size: 2972037809
+  hash: md5
+  path: 
+    http://horatio.cs.nyu.edu/mit/silberman/nyu_depth_v2/nyu_depth_v2_labeled.mat
+outs:
+- hash: md5
+  path: nyu_depth_v2_labeled.mat
+  md5: 520609c519fba3ba5ac58c8fefcc3530
+  size: 2972037809
