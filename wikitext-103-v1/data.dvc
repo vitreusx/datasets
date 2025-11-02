@@ -1,0 +1,13 @@
+md5: c986355c5fcf60d47ce9c3ebc90eefb8
+frozen: true
+deps:
+- path: wikitext-103-v1
+  repo:
+    url: https://huggingface.co/datasets/Salesforce/wikitext
+    rev_lock: b08601e04326c79dfdd32d625aee71d232d685c3
+outs:
+- md5: 08340c87f06fa36be7aef11342f89008.dir
+  size: 313093838
+  nfiles: 4
+  hash: md5
+  path: data
