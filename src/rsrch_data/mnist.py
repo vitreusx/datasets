@@ -1,12 +1,12 @@
+import math
 from pathlib import Path
 from typing import Literal
-from PIL import Image
-import io
+
 import numpy as np
-import math
+from PIL import Image
 
 
-def load_idx(fp: io.IO[bytes]):
+def load_idx(fp):
     """Load array in IDX format."""
 
     # First four bytes: two zeros, dtype and num of axes

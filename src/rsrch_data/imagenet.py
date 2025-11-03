@@ -5,7 +5,23 @@ import pandas as pd
 from PIL import Image
 
 from .meta import ClsMeta
-import xml.etree.ElementTree as ET
+
+
+def parse_loc_synset_mapping(path: str | Path):
+    records = []
+    with open(path, "r") as f:
+        for line in f:
+            line = line.rstrip()
+            pos = line.index(" ")
+            wnid, defs = line[:pos], line[pos + 1 :]
+            pos = defs.find(",")
+            name = defs if pos < 0 else defs[:pos]
+            records.append((wnid, name, defs))
+
+    return pd.DataFrame.from_records(
+        records,
+        columns=["wnid", "name", "defs"],
+    )
 
 
 def _get_label_names(loc_synset_mapping_txt: str | Path):
@@ -49,6 +65,8 @@ class ImageNet:
     │       ├── val.txt
     │       └── test.txt
     └── LOC_synset_mapping.txt     # A list of labels with WordNet IDs
+    └── LOC_train_solution.csv
+    └── LOC_val_solution.csv
     ```
     """
 
@@ -67,43 +85,53 @@ class ImageNet:
         cls_lists = {"train": "train_cls.txt", "val": "val.txt", "test": "test.txt"}
         cls_list = self.root / "ILSVRC/ImageSets/CLS-LOC" / cls_lists[split]
 
-        self._paths: list[str] = []
+        self.paths: list[str] = []
         with open(cls_list, "r") as f:
             for line in f:
                 path, index = line.strip().split(" ")
-                if int(index) - 1 != len(self._paths):
+                if int(index) - 1 != len(self.paths):
                     raise RuntimeError("Invalid class order")
-                self._paths.append(path)
+                self.paths.append(path)
 
-        self.wnid_to_label = {}
-        with open(self.root / "LOC_synset_mapping.txt", "r") as f:
-            for label, line in enumerate(f):
-                line = line.strip()
-                pos = line.index(" ")
-                wnid = line[:pos]
-                self.wnid_to_label[wnid] = label
+        synset_df = parse_loc_synset_mapping(self.root / "LOC_synset_mapping.txt")
+        self.wnid_to_label = {
+            wnid: label for label, wnid in enumerate(synset_df["wnid"])
+        }
+
+        if split == "train":
+            self.wnids = []
+            for path in self.paths:
+                wnid = path.split("/")[0]
+                self.wnids.append(wnid)
+        elif split == "val":
+            # We get the IDs from the solution file, because it's faster than
+            # parsing all the XML files
+            sol_df = pd.read_csv(self.root / "LOC_val_solution.csv")
+            wnids_map = {}
+            for _, row in sol_df.iterrows():
+                pred: str = row["PredictionString"]
+                wnid = pred[: pred.find(" ")]
+                wnids_map[row["ImageId"]] = wnid
+            self.wnids = [wnids_map[path] for path in self.paths]
 
     def __len__(self):
         return len(self._paths)
 
     def __getitem__(self, idx: int):
-        path = self._paths[idx]
+        path = self.paths[idx]
         img_path = self.img_root / (path + ".JPEG")
         img = Image.open(img_path).convert("RGB")
 
-        if self.split == "train":
-            label = img_path.parents[1].name
+        if self.split in ("train", "val"):
+            wnid = self.wnids[idx]
+            label = self.wnid_to_label[wnid]
             return {"image": img, "label": label}
-        elif self.split == "val":
-            with open(self.ann_root / (path + ".xml"), "r") as f:
-                ann = ET.parse(f)
-                label = self.wnid_to_label[ann.find(".//object/name").text]
-            return {"image": img, "label": label}
-        elif self.split == "test":
+        else:
             return img
 
     def meta(self):
         loc_synset_mapping_txt = self.root / "LOC_synset_mapping.txt"
-        label_names = _get_label_names(loc_synset_mapping_txt)
+        synset_df = parse_loc_synset_mapping(loc_synset_mapping_txt)
+        label_names = synset_df["name"]
         classes = dict(enumerate(label_names))
         return ClsMeta({"classes": classes, "ignore_index": None})
