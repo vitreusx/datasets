@@ -17,6 +17,16 @@ dependencies = [
     "pycocotools>=2.0.10",
 ]
 
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+rsrch_data = ["**/*.yml"]
+
 [tool.uv]
 package = true
 
