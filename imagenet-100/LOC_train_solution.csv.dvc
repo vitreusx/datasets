@@ -1,0 +1,5 @@
+outs:
+- md5: ad08f3ba13f278b7b97a09ed5f378ab0
+  size: 2453829
+  hash: md5
+  path: LOC_train_solution.csv

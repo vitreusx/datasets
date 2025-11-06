@@ -1,0 +1,6 @@
+outs:
+- md5: fbed349d6699ca9953a81ddde718e40d.dir
+  size: 15223667256
+  nfiles: 193525
+  hash: md5
+  path: ILSVRC

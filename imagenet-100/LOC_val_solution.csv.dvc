@@ -1,0 +1,5 @@
+outs:
+- md5: 6c4bbb55b011fb24bba3260f2419413c
+  size: 320359
+  hash: md5
+  path: LOC_val_solution.csv

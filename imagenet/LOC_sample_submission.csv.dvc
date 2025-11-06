@@ -1,0 +1,5 @@
+outs:
+- md5: b1dd2c0fad6f62cf8c18835066421410
+  size: 4600025
+  hash: md5
+  path: LOC_sample_submission.csv

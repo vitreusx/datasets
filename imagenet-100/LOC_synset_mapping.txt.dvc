@@ -1,0 +1,5 @@
+outs:
+- md5: 0fd8d7f07a2c571cb6280d68b01a9b80
+  size: 3052
+  hash: md5
+  path: LOC_synset_mapping.txt

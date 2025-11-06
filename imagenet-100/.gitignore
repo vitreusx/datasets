@@ -1,1 +1,5 @@
 /data
+/ILSVRC
+/LOC_synset_mapping.txt
+/LOC_train_solution.csv
+/LOC_val_solution.csv
