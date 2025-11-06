@@ -115,7 +115,7 @@ class ImageNet:
             self.wnids = [wnids_map[path] for path in self.paths]
 
     def __len__(self):
-        return len(self._paths)
+        return len(self.paths)
 
     def __getitem__(self, idx: int):
         path = self.paths[idx]
