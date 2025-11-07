@@ -1,30 +1,50 @@
 schema: '2.0'
 stages:
-  unpack@t10k-images-idx3-ubyte:
-    cmd: gunzip -c archives/t10k-images-idx3-ubyte.gz >t10k-images-idx3-ubyte
-    outs:
-    - path: t10k-images-idx3-ubyte
-      hash: md5
-      md5: 2646ac647ad5339dbf082846283269ea
-      size: 7840016
   unpack@t10k-labels-idx1-ubyte:
     cmd: gunzip -c archives/t10k-labels-idx1-ubyte.gz >t10k-labels-idx1-ubyte
+    deps:
+    - path: archives/t10k-labels-idx1-ubyte.gz
+      hash: md5
+      md5: ec29112dd5afa0611ce80d1b7f02629c
+      size: 4542
     outs:
     - path: t10k-labels-idx1-ubyte
       hash: md5
       md5: 27ae3e4e09519cfbb04c329615203637
       size: 10008
-  unpack@train-images-idx3-ubyte:
-    cmd: gunzip -c archives/train-images-idx3-ubyte.gz >train-images-idx3-ubyte
-    outs:
-    - path: train-images-idx3-ubyte
-      hash: md5
-      md5: 6bbc9ace898e44ae57da46a324031adb
-      size: 47040016
   unpack@train-labels-idx1-ubyte:
     cmd: gunzip -c archives/train-labels-idx1-ubyte.gz >train-labels-idx1-ubyte
+    deps:
+    - path: archives/train-labels-idx1-ubyte.gz
+      hash: md5
+      md5: d53e105ee54ea40749a09fcbcd1e9432
+      size: 28881
     outs:
     - path: train-labels-idx1-ubyte
       hash: md5
       md5: a25bea736e30d166cdddb491f175f624
       size: 60008
+  unpack@train-images-idx3-ubyte:
+    cmd: gunzip -c archives/train-images-idx3-ubyte.gz >train-images-idx3-ubyte
+    deps:
+    - path: archives/train-images-idx3-ubyte.gz
+      hash: md5
+      md5: f68b3c2dcbeaaa9fbdd348bbdeb94873
+      size: 9912422
+    outs:
+    - path: train-images-idx3-ubyte
+      hash: md5
+      md5: 6bbc9ace898e44ae57da46a324031adb
+      size: 47040016
+  unpack@t10k-images-idx3-ubyte:
+    cmd: gunzip -c archives/t10k-images-idx3-ubyte.gz >t10k-images-idx3-ubyte
+    deps:
+    - path: archives/t10k-images-idx3-ubyte.gz
+      hash: md5
+      md5: 9fb629c4189551a2d022fa330f9573f3
+      size: 1648877
+    outs:
+    - path: t10k-images-idx3-ubyte
+      hash: md5
+      md5: 2646ac647ad5339dbf082846283269ea
+      size: 7840016

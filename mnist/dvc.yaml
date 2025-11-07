@@ -6,6 +6,8 @@ stages:
         - t10k-images-idx3-ubyte
         - train-images-idx3-ubyte
         - train-labels-idx1-ubyte
+    deps:
+      - archives/${item.file}.gz
     cmd: gunzip -c archives/${item.file}.gz >${item.file}
     outs:
       - ${item.file}
