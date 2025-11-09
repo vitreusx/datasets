@@ -1,0 +1,40 @@
+stages:
+  cifar:
+    deps: [cifar]
+    cmd: echo "Set up cifar"
+  coco:
+    deps: [coco]
+    cmd: echo "Set up coco"
+  finewiki:
+    deps: [finewiki]
+    cmd: echo "Set up finewiki"
+  hdvila:
+    deps: [hdvila]
+    cmd: echo "Set up hdvila"
+  imagenet:
+    deps: [imagenet]
+    cmd: echo "Set up imagenet"
+  imagenet-100:
+    deps: [imagenet-100]
+    cmd: echo "Set up imagenet-100"
+  mnist:
+    deps: [mnist]
+    cmd: echo "Set up mnist"
+  mono-vo:
+    deps: [mono-vo]
+    cmd: echo "Set up mono-vo"
+  nyu-depth-v2:
+    deps: [nyu-depth-v2]
+    cmd: echo "Set up nyu-depth-v2"
+  open-images-v7:
+    deps: [open-images-v7]
+    cmd: echo "Set up open-images-v7"
+  voc:
+    deps: [voc]
+    cmd: echo "Set up voc"
+  wikipedia:
+    deps: [wikipedia]
+    cmd: echo "Set up wikipedia"
+  wikitext-103-v1:
+    deps: [eikitext-103-v1]
+    cmd: echo "Set up wikitext-103-v1"
