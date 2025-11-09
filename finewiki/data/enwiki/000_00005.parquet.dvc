@@ -1,5 +1,11 @@
 outs:
-- md5: e7e738e89aa1d66a065b452876302aee
+- hash: md5
+  path: 000_00005.parquet
+md5: 24673419d68882f1c664ceb344df7a6d
+frozen: true
+deps:
+- checksum: '"cc5d422426e0d7c87b9580aaf852a4852700a6d45eceed23d73dfc1313646f45"'
   size: 2518529521
   hash: md5
-  path: 000_00005.parquet
+  path: 
+    remote://hf/HuggingFaceFW/finewiki/resolve/71306a3fed631b8c1a77e5479eb9edddc8866003/data/enwiki/000_00005.parquet

@@ -5,3 +5,5 @@
     url = https://ossci-datasets.s3.amazonaws.com/mnist
 ['remote "hdd"']
     url = /storage/dvc
+['remote "hf"']
+    url = https://huggingface.co/datasets
