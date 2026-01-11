@@ -36,5 +36,5 @@ stages:
     deps: [wikipedia]
     cmd: echo "Set up wikipedia"
   wikitext-103-v1:
-    deps: [eikitext-103-v1]
+    deps: [wikitext-103-v1]
     cmd: echo "Set up wikitext-103-v1"
