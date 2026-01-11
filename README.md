@@ -1,18 +1,19 @@
 # Datasets
 
-This repo contains [DVC](https://dvc.org/)-versioned datasets.
+This repo contains [DVC](https://dvc.org/)-versioned datasets, along with a
+Python library for loading them.
 
 List of datasets:
 
-- [CIFAR-10 & CIFAR-100](./cifar)
-- [COCO 2017](./coco)
-- [HD-VILA-100M](./hdvila)
-- [ImageNet](./imagenet) and [ImageNet-100](./imagenet-100)
-- [MNIST](./mnist)
-- [Monocular Visual Odometry (MonoVO)](./mono-vo)
-- [NYU Depth V2](./nyu-depth-v2)
-- [Open Images V7](./open-images-v7)
-- [Wikipedia Dumps](./wikipedia)
+- [CIFAR-10 & CIFAR-100](./datasets/cifar)
+- [COCO 2017](./datasets/coco)
+- [HD-VILA-100M](./datasets/hdvila)
+- [ImageNet](./datasets/imagenet) and [ImageNet-100](./datasets/imagenet-100)
+- [MNIST](./datasets/mnist)
+- [Monocular Visual Odometry (MonoVO)](./datasets/mono-vo)
+- [NYU Depth V2](./datasets/nyu-depth-v2)
+- [Open Images V7](./datasets/open-images-v7)
+- [Wikipedia Dumps](./datasets/wikipedia)
 
 ## Usage guide
 

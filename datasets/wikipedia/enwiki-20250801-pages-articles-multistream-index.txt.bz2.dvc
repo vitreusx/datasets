@@ -4,7 +4,7 @@ deps:
 - checksum: '"688eb635-1048bf26"'
   size: 273202982
   hash: md5
-  path: 
+  path:
     https://dumps.wikimedia.org/enwiki/20250801/enwiki-20250801-pages-articles-multistream-index.txt.bz2
 outs:
 - hash: md5

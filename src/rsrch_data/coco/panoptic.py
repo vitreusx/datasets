@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 from PIL import Image
 
-from ..meta import panoptic_meta
+from rsrch_data.meta import panoptic_meta
 
 if TYPE_CHECKING:
     from .utils.schema import PanopticAnnFile

@@ -7,5 +7,5 @@ deps:
 - checksum: '"cc970672123e0e42015ccc3b79ab62be614ee9d627f067130ebedf00a561ea91"'
   size: 2491036654
   hash: md5
-  path: 
+  path:
     remote://hf/HuggingFaceFW/finewiki/resolve/71306a3fed631b8c1a77e5479eb9edddc8866003/data/enwiki/000_00006.parquet

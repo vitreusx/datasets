@@ -1,9 +1,11 @@
 import pickle
-import numpy as np
 from pathlib import Path
 from typing import Literal
+
+import numpy as np
 from PIL import Image
 from ruamel.yaml import YAML
+
 from .meta import ClsMeta
 
 
@@ -34,7 +36,7 @@ class CIFAR10:
         images, labels = [], []
         for fname in batches:
             with open(data_root / "cifar-10-batches-py" / fname, "rb") as f:
-                batch = pickle.load(f, encoding="bytes")
+                batch = pickle.load(f, encoding="bytes")  # noqa: S301
             images.append(batch[b"data"])
             labels.extend(batch[b"label"])
 
@@ -79,7 +81,7 @@ class CIFAR100:
         data_root = Path(data_root)
 
         with open(data_root / "cifar-10-batches-py" / split, "rb") as f:
-            data = pickle.load(f, encoding="bytes")
+            data = pickle.load(f, encoding="bytes")  # noqa: S301
             images, labels = data[b"data"], data[b"fine_labels"]
 
         images = images.reshape(-1, 3, 32, 32)

@@ -4,7 +4,7 @@ deps:
 - checksum: '"688d1688-3b2dc9d"'
   size: 62053533
   hash: md5
-  path: 
+  path:
     https://dumps.wikimedia.org/frwiki/20250801/frwiki-20250801-pages-articles-multistream-index.txt.bz2
 outs:
 - hash: md5

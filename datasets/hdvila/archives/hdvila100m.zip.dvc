@@ -9,5 +9,5 @@ deps:
 - checksum: '"0x8DA58B6CF73E638"'
   size: 1241919766
   hash: md5
-  path: 
+  path:
     https://hdvila.blob.core.windows.net/dataset/hdvila100m.zip

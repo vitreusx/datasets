@@ -1,6 +1,7 @@
 from pathlib import Path
-import pyarrow.parquet as pq
 from typing import Literal
+
+import pyarrow.parquet as pq
 
 
 class Wikitext:

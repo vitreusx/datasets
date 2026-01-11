@@ -4,7 +4,7 @@ deps:
 - checksum: '"654b8f6b0d7714d8d4f6ffbb095c66b2"'
   size: 3351
   hash: md5
-  path: 
+  path:
     https://storage.googleapis.com/openimages/v7/oidv7-classes-segmentation.txt
 outs:
 - md5: 654b8f6b0d7714d8d4f6ffbb095c66b2

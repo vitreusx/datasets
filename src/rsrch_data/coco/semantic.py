@@ -5,7 +5,7 @@ from typing import Literal
 import numpy as np
 from PIL import Image
 
-from ..meta import SegMeta
+from rsrch_data.meta import SegMeta
 
 from .panoptic import COCOPanoptic
 

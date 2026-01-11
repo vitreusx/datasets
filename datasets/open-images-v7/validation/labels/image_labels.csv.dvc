@@ -4,7 +4,7 @@ deps:
 - checksum: '"2e129f40a209e65dfe4342ed0e7bd5f2"'
   size: 10649275
   hash: md5
-  path: 
+  path:
     https://storage.googleapis.com/openimages/v5/validation-annotations-human-imagelabels-boxable.csv
 outs:
 - md5: 2e129f40a209e65dfe4342ed0e7bd5f2

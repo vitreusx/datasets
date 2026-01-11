@@ -4,7 +4,7 @@ deps:
 - checksum: '"4170db65fc022c9c296af880dbca6055"'
   size: 860725834
   hash: md5
-  path: 
+  path:
     http://images.cocodataset.org/annotations/panoptic_annotations_trainval2017.zip
 outs:
 - hash: md5

@@ -36,4 +36,50 @@ dev = [
     "dvc>=3.63.0",
     "dvc-s3>=3.2.2",
     "kaggle>=1.7.4.5",
+    "pre-commit>=4.5.1",
+    "ruff>=0.12.12",
+]
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+target-version = "py310"
+
+[tool.ruff.format]
+docstring-code-format = true
+exclude = ["ext/*"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D",       # Documentation
+    "ANN",     # Annotations
+    "FBT",     # Flake Boolean Trap
+    "E731",    # Lambda assignment
+    "C416",    # Unnecessary dict comprehension
+    "C901",    # ... is too complex
+    "UP015",   # [*] Unnecessary mode argument
+    "PTH123",  # `open()` should be replaced by `Path.open()`
+    "PLW2901", # `for` loop variable `batch` overwritten by assignment target
+    "PLR2004", # Magic value used in comparison
+    "RET505",  # [*] Unnecessary `else` after `return` statement
+    "N812",    # Lowercase `functional` imported as non-lowercase
+    "INP001",  # File is part of an implicit namespace package
+    "PLC0415", # `import` should be at the top-level of a file
+    "A002",    # Function argument is shadowing a Python builtin
+    "RET504",  # Unnecessary assignment before `return` statement
+    "A001",    # Variable is shadowing a Python builtin
+    "PLR0913", # Too many arguments in function definition
+    "EM101",   # Exception must not use a string literal, assign to variable first
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "COM812",  # [*] Trailing comma missing
+    "UP035",   # [*] Import from `collections.abc` instead
+    "RET506",  # [*] Unnecessary `elif` after `raise` statement
+    "S113",    # Probable use of `requests` call without timeout
+    "BLE001",  # Do not catch blind exception
+    "DTZ005",  # `datetime.datetime.now()` called without a `tz` argument
+    "S603",    # `subprocess` call: check for execution of untrusted input
 ]

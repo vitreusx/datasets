@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from pathlib import Path
+
 import h5py
 import numpy as np
 from PIL import Image

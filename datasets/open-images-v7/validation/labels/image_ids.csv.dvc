@@ -4,7 +4,7 @@ deps:
 - checksum: '"643a54e43b0bab8acce8817b4a569780"'
   size: 15245485
   hash: md5
-  path: 
+  path:
     https://storage.googleapis.com/openimages/2018_04/validation/validation-images-with-rotation.csv
 outs:
 - md5: 643a54e43b0bab8acce8817b4a569780

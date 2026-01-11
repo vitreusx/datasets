@@ -3,8 +3,9 @@ import shutil
 from pathlib import Path
 
 import pandas as pd
-from rsrch_data.imagenet import ImageNet, parse_loc_synset_mapping
 from tqdm.auto import tqdm
+
+from rsrch_data.imagenet import ImageNet, parse_loc_synset_mapping
 
 
 def main():

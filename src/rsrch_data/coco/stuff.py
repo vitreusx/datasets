@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal
 
 from PIL import Image
 
-from ..meta import seg_meta
+from rsrch_data.meta import seg_meta
 
 if TYPE_CHECKING:
     from .utils.schema import DetectAnnFile

@@ -4,7 +4,7 @@ deps:
 - checksum: '"b125b2b1-5aa5b95787a80"'
   size: 2972037809
   hash: md5
-  path: 
+  path:
     http://horatio.cs.nyu.edu/mit/silberman/nyu_depth_v2/nyu_depth_v2_labeled.mat
 outs:
 - hash: md5

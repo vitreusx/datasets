@@ -1,13 +1,14 @@
 import argparse
-from pathlib import Path
-from tqdm.auto import tqdm
 import bz2
-import pandas as pd
-import numpy as np
-import pyarrow as pa
-import pyarrow.parquet as pq
 import multiprocessing as mp
 import os
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+from tqdm.auto import tqdm
 
 
 def batched(xs, batch_size: int, drop_last: bool = False):
@@ -81,7 +82,7 @@ def main():
         with mp.Pool(os.cpu_count()) as pool:
             task_args = [
                 (args.ms_file, offset, size)
-                for offset, size in zip(file_offsets, file_sizes)
+                for offset, size in zip(file_offsets, file_sizes, strict=True)
             ]
             for xmls in pool.imap(task_fn, task_args):
                 yield from xmls

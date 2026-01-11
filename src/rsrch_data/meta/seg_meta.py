@@ -5,8 +5,8 @@ from typing import TypedDict
 import numpy as np
 from ruamel.yaml import YAML
 
+from .colors import Palette, get_palette, hex2rgb
 from .utils import is_contiguous, typed_cache
-from .colors import hex2rgb, Palette, get_palette
 
 
 class SegLabelInfo(TypedDict):

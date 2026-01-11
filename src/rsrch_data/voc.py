@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Literal
 
 from PIL import Image
+
 from .meta import seg_meta
 
 
