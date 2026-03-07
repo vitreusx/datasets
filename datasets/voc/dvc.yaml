@@ -1,7 +1,0 @@
-stages:
-  unpack:
-    deps:
-      - archives/VOCtrainval_11-May-2012.tar
-    cmd: tar xf archives/VOCtrainval_11-May-2012.tar
-    outs:
-      - VOCdevkit
