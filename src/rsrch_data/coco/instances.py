@@ -1,3 +1,5 @@
+"""COCO instance segmentation dataset loader."""
+
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal, NamedTuple, TypedDict
@@ -5,11 +7,14 @@ from typing import Literal, NamedTuple, TypedDict
 import numpy as np
 from PIL import Image
 from pycocotools.coco import COCO
+from ruamel.yaml import YAML
 
-from rsrch_data.meta import cls_meta
+from rsrch_data.types.object_det import Metadata
 
 
 class Box(NamedTuple):
+    """Bounding box in (x, y, width, height) format."""
+
     x: float
     y: float
     width: float
@@ -17,13 +22,24 @@ class Box(NamedTuple):
 
 
 class Instance(TypedDict):
+    """A single instance annotation."""
+
     category: int
     bbox: Box
     iscrowd: bool | None
     mask: Image.Image
 
 
+class Sample(TypedDict):
+    """A COCO instance segmentation sample."""
+
+    image: Image.Image
+    instances: list[Instance]
+
+
 class COCOInstances(Sequence):
+    """COCO instance segmentation dataset."""
+
     def __init__(
         self,
         root: str | Path,
@@ -41,7 +57,7 @@ class COCOInstances(Sequence):
     def __len__(self):
         return len(self.img_ids)
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Sample:
         img_id = self.img_ids[index]
         img_info = self.coco.loadImgs(img_id)[0]
         img_path = self.img_root / img_info["file_name"]
@@ -65,7 +81,7 @@ class COCOInstances(Sequence):
 
         return {"image": img, "instances": instances}
 
-    def _get_meta(self):
+    def _get_meta(self) -> dict:
         classes = {}
         categories = self.coco.loadCats(self.coco.getCatIds())
         for cat in categories:
@@ -74,5 +90,9 @@ class COCOInstances(Sequence):
         return {"classes": classes, "ignore_index": 0}
 
     @staticmethod
-    def meta():
-        return cls_meta(Path(__file__).parent / "coco.yml")
+    def meta() -> Metadata:
+        """Return class metadata loaded from the bundled YAML."""
+        yaml = YAML(typ="safe", pure=True)
+        with (Path(__file__).parent / "coco.yml").open() as f:
+            data = yaml.load(f)
+        return Metadata(**data)

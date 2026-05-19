@@ -1,7 +1,11 @@
+"""TypedDict schemas for COCO annotation file structures."""
+
 from typing import Any, TypedDict
 
 
 class Info(TypedDict):
+    """Top-level dataset info block."""
+
     description: str
     url: str
     version: str
@@ -11,12 +15,16 @@ class Info(TypedDict):
 
 
 class License(TypedDict):
+    """Image license entry."""
+
     url: str
     id: int
     name: str
 
 
 class Image(TypedDict):
+    """Image metadata entry."""
+
     license: int
     file_name: str
     coco_url: str
@@ -28,6 +36,8 @@ class Image(TypedDict):
 
 
 class DetectAnn(TypedDict):
+    """A single detection annotation."""
+
     id: int
     image_id: int
     category_id: int
@@ -38,12 +48,16 @@ class DetectAnn(TypedDict):
 
 
 class DetectCategory(TypedDict):
+    """A detection category entry."""
+
     supercategory: str
     id: int
     name: str
 
 
 class DetectAnnFile(TypedDict):
+    """Top-level structure of a COCO detection annotation file."""
+
     info: Info
     licenses: list[License]
     images: list[Image]
@@ -52,6 +66,8 @@ class DetectAnnFile(TypedDict):
 
 
 class SegmentInfo(TypedDict):
+    """Per-segment info within a panoptic annotation."""
+
     id: int
     category_id: int
     area: int
@@ -60,12 +76,16 @@ class SegmentInfo(TypedDict):
 
 
 class PanopticAnn(TypedDict):
+    """A single panoptic annotation (one per image)."""
+
     image_id: int
     file_name: str
     segments_info: list[SegmentInfo]
 
 
 class PanopticCategory(TypedDict):
+    """A panoptic category entry."""
+
     id: int
     name: str
     supercategory: str
@@ -74,6 +94,8 @@ class PanopticCategory(TypedDict):
 
 
 class PanopticAnnFile(TypedDict):
+    """Top-level structure of a COCO panoptic annotation file."""
+
     info: Info
     licenses: list[License]
     images: list[Image]

@@ -1,3 +1,5 @@
+"""HuggingFace Hub download utilities."""
+
 import re
 from pathlib import Path
 
@@ -16,10 +18,9 @@ UNITS = {
     "gb": 1024**3,
 }
 
-DATASET_ID = "HuggingFaceFW/fineweb-2"
 
-
-def parse_size(size: int | str):
+def parse_size(size: int | str) -> int | float:
+    """Parse a human-readable size string (e.g. '1.5gb') into bytes."""
     if isinstance(size, str):
         size = size.lower()
         m = re.match(SIZE_PAT, size)
@@ -38,7 +39,11 @@ def fetch(
     allow_patterns: str | list[str] | None = None,
     max_dl_size: int | str | None = None,
     seed: int = 0,
-):
+) -> None:
+    """Download a HuggingFace dataset snapshot into data_root.
+
+    If max_dl_size is set, randomly sample files until the size budget is reached.
+    """
     if max_dl_size is not None:
         files: list[DryRunFileInfo] = snapshot_download(
             dataset_id,

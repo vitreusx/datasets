@@ -1,18 +1,34 @@
+"""COCO panoptic segmentation dataset loader."""
+
 import json
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 import numpy as np
 from PIL import Image
+from ruamel.yaml import YAML
 
-from rsrch_data.meta import panoptic_meta
+from rsrch_data.types.panoptic_seg import Metadata
+
+from .utils.schema import SegmentInfo
 
 if TYPE_CHECKING:
     from .utils.schema import PanopticAnnFile
 
 
+class Sample(TypedDict):
+    """A COCO panoptic segmentation sample."""
+
+    image: Image.Image
+    ann_img: Image.Image
+    ids: np.ndarray
+    segments: list[SegmentInfo]
+
+
 class COCOPanoptic(Sequence):
+    """COCO panoptic segmentation dataset."""
+
     def __init__(
         self,
         root: str | Path,
@@ -22,7 +38,7 @@ class COCOPanoptic(Sequence):
         self.split = split
 
         ann_file = self.root / f"annotations/panoptic_{split}2017.json"
-        with open(ann_file, "r") as f:
+        with ann_file.open() as f:
             self.ann_file: PanopticAnnFile = json.load(f)
 
         self.img_anns = {image["id"]: [] for image in self.ann_file["images"]}
@@ -33,12 +49,13 @@ class COCOPanoptic(Sequence):
         self.ann_root = self.root / f"annotations/panoptic_{self.split}2017"
 
         if any(len(v) != 1 for v in self.img_anns.values()):
-            raise RuntimeError("Need to have 1 annotation per image")
+            msg = "Need to have 1 annotation per image"
+            raise RuntimeError(msg)
 
     def __len__(self):
         return len(self.ann_file["images"])
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> Sample:
         img_info = self.ann_file["images"][index]
         img_path = self.img_root / img_info["file_name"]
         img = Image.open(img_path)
@@ -58,7 +75,7 @@ class COCOPanoptic(Sequence):
             "segments": ann["segments_info"],
         }
 
-    def _get_meta(self):
+    def _get_meta(self) -> dict:
         classes = {}
         for cat in self.ann_file["categories"]:
             classes[cat["id"]] = {
@@ -70,5 +87,9 @@ class COCOPanoptic(Sequence):
         return {"classes": classes, "ignore_index": 0}
 
     @staticmethod
-    def meta():
-        return panoptic_meta(Path(__file__).parent / "coco_panoptic.yml")
+    def meta() -> Metadata:
+        """Return panoptic metadata loaded from the bundled YAML."""
+        yaml = YAML(typ="safe", pure=True)
+        with (Path(__file__).parent / "coco_panoptic.yml").open() as f:
+            data = yaml.load(f)
+        return Metadata(**data)
