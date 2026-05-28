@@ -26,9 +26,15 @@ class Metadata(TypedDict):
     """Metadata loaded from the JSON sidecar produced by `tokenize_text_dataset`."""
 
     num_documents: int
+    """Total number of documents for the dataset."""
     num_tokens: int
-    tokenizer: str | None
+    """Total number of tokens for the dataset."""
+    tokenizer: str | None = None
+    """If provided, path to the tokenizer, e.g. `models/gpt2/tokenizer.json`.
+    mostly used to remember which tokenizer was used to generate the file."""
     splits: dict[str, Split]
+    """If the file has been split, contains the split info in the form of
+    `{[split_path: str]: [begin token index, end token index]}`."""
 
 
 class TokensBinDocs(Sequence):
@@ -114,8 +120,19 @@ class TokensBinDocs(Sequence):
 
 
 class Segment(TypedDict):
+    """A fixed-size token window from the flat token stream."""
+
     tokens: np.ndarray
     """A fixed-size token segment, of shape (L,) and dtype uint16."""
+
+
+def get_num_of_tokens(path: str | Path) -> int:
+    """Return the total token count from the JSON sidecar of a binary token file."""
+    path = Path(path)
+    meta_path = path.parent / f"{path.name}.json"
+    with meta_path.open() as f:
+        meta: Metadata = json.load(f)
+    return meta["num_tokens"]
 
 
 class TokensBinLoader:
@@ -131,21 +148,31 @@ class TokensBinLoader:
         self,
         path: str | Path,
         seq_len: int,
+        *,
+        start: int | None = None,
+        end: int | None = None,
         stride: int | None = None,
     ) -> None:
         self._dataset = TokensBinDocs(path)
         self._seq_len = seq_len
+        self._start = start if start is not None else 0
+        self._end = end if end is not None else self._dataset.num_tokens
         self._stride = stride if stride is not None else seq_len
 
     def __len__(self) -> int:
-        n = self._dataset.num_tokens
-        return max(0, (n - self._seq_len) // self._stride + 1)
+        return len(range(self._start, self._end - self._seq_len, self._stride))
+
+    def __getitem__(self, index: int) -> Segment:
+        """Return the token window at position index."""
+        if index < 0:
+            index += len(self)
+        offset = self._start + index * self._stride
+        return {"tokens": self._dataset.read_tokens(offset, offset + self._seq_len)}
 
     def __iter__(self) -> Iterator[Segment]:
         """Yield token windows in order."""
-        for i in range(len(self)):
-            start = i * self._stride
-            yield {"tokens": self._dataset.read_tokens(start, start + self._seq_len)}
+        for offset in range(self._start, self._end - self._seq_len, self._stride):
+            yield {"tokens": self._dataset.read_tokens(offset, offset + self._seq_len)}
 
     def meta(self) -> Metadata:
         """Return the dataset metadata."""

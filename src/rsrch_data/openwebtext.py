@@ -8,10 +8,14 @@ import pyarrow.parquet as pq
 
 
 class Batch(TypedDict):
+    """OpenWebText batch."""
+
     text: list[str]
 
 
 class OpenWebTextLoader(Iterable[Batch]):
+    """Iterable loader over OpenWebText parquet files."""
+
     def __init__(
         self,
         data_root: str | Path,

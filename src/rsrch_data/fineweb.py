@@ -1,4 +1,6 @@
-from collections.abc import Iterator
+"""FineWeb-Edu data loading."""
+
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Literal, TypedDict
 
@@ -20,17 +22,30 @@ class Batch(TypedDict):
     int_score: list[int]
 
 
-def fineweb_loader(
-    data_root: str | Path,
-    subset: Literal["sample-10BT"],
-    batch_size: int,
-) -> Iterator[Batch]:
-    data_root = Path(data_root)
-    subdir = {"sample-10BT": "sample/10BT"}[subset]
-    subset_root = data_root / subdir
-    pq_files = sorted([*subset_root.glob("*.parquet")])
+class FinewebEduLoader(Iterable[Batch]):
+    """Iterable loader over FineWeb-Edu parquet files."""
 
-    for pq_file_path in pq_files:
-        pf = pq.ParquetFile(pq_file_path)
-        for batch in pf.iter_batches(batch_size):
-            yield batch.to_pydict()
+    def __init__(
+        self,
+        data_root: str | Path,
+        subset: Literal["sample-10BT"],
+        batch_size: int,
+    ):
+        self.data_root = Path(data_root)
+        self.batch_size = batch_size
+        subdir = {"sample-10BT": "sample/10BT"}[subset]
+        subset_root = data_root / subdir
+        self._pq_files = sorted([*subset_root.glob("*.parquet")])
+
+    def __len__(self) -> int:
+        total = 0
+        for pq_file_path in self._pq_files:
+            pf = pq.ParquetFile(pq_file_path)
+            total += (pf.metadata.num_rows + self.batch_size - 1) // self.batch_size
+        return total
+
+    def __iter__(self):
+        for pq_file_path in self._pq_files:
+            pf = pq.ParquetFile(pq_file_path)
+            for batch in pf.iter_batches(self.batch_size):
+                yield batch.to_pydict()

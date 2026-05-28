@@ -1,9 +1,11 @@
+"""Utility for tokenizing a text dataset into a flat binary token file."""
+
 import json
 import shutil
 import tempfile
 from collections.abc import Iterable
 from pathlib import Path
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 import numpy as np
 from tokenizers import Tokenizer
@@ -11,30 +13,24 @@ from tqdm.auto import tqdm
 
 from rsrch_data.utils.misc import parse_size
 
+if TYPE_CHECKING:
+    from rsrch_data.tokens_bin import Metadata
+
 
 class Batch(TypedDict):
+    """Input batch of text documents."""
+
     text: list[str]
 
 
 class Split(TypedDict):
+    """Token range for a single shard."""
+
     start: int
     end: int
 
 
-class Metadata(TypedDict):
-    num_documents: int
-    """Total number of documents for the dataset."""
-    num_tokens: int
-    """Total number of tokens for the dataset."""
-    tokenizer: str | None = None
-    """If provided, path to the tokenizer, e.g. `models/gpt2/tokenizer.json`.
-    mostly used to remember which tokenizer was used to generate the file."""
-    splits: dict[str, Split]
-    """If the file has been split, contains the split info in the form of
-    `{[split_path: str]: [begin token index, end token index]}`."""
-
-
-def tokenize_text_dataset(
+def tokenize_text_dataset(  # noqa: C901, PLR0915
     loader: Iterable[Batch],
     tokenizer: Tokenizer,
     dest: str | Path,
@@ -42,7 +38,7 @@ def tokenize_text_dataset(
     progress: bool = True,
     max_shard_size: str = "4G",
     tokenizer_id: str | None = None,
-):
+) -> None:
     """Tokenize text dataset into a flat sequence of `np.uint16` values.
 
     The sequence is put into `dest`. If the total size exceeds `max_shared_size`,
