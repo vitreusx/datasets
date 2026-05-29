@@ -59,7 +59,7 @@ class Config(BaseModel):
     """CLI configuration for the Open Images V7 downloader."""
 
     data_root: str
-    fetch_masks: bool
+    fetch_masks: bool = False
 
 
 def main(cfg: Config) -> None:
