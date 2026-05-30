@@ -1,17 +1,15 @@
 """View dataset samples."""
 
-from __future__ import annotations
-
-import dataclasses
 import inspect
 import itertools
 import os
 import shutil
 import subprocess
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any
+from typing import Annotated, Any
 
 import tyro
 from PIL import Image
@@ -19,18 +17,6 @@ from rich.console import Console
 from rich.panel import Panel
 
 from rsrch_data.registry import get_registry
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
-
-
-def _iter_dataset(dataset: object) -> Iterator[Any]:
-    """Yield samples, supporting both Sequence and Iterable protocols."""
-    if hasattr(dataset, "__len__") and hasattr(dataset, "__getitem__"):
-        for i in range(len(dataset)):
-            yield dataset[i]
-    else:
-        yield from dataset  # type: ignore[misc]
 
 
 def _view_images(dataset: object, db_uri: str | None) -> None:
@@ -41,7 +27,7 @@ def _view_images(dataset: object, db_uri: str | None) -> None:
     import fiftyone as fo  # type: ignore[import-untyped]
 
     def _fo_samples(tmp_path: Path) -> Iterator[Any]:
-        for i, sample in enumerate(_iter_dataset(dataset)):
+        for i, sample in enumerate(dataset):
             image = sample if isinstance(sample, Image.Image) else sample["image"]
             filepath = getattr(image, "filename", None) or ""
             if not filepath:
@@ -63,7 +49,7 @@ def _view_spatial(dataset: object) -> None:
 
     rr.init("view_dataset", spawn=True)
 
-    for i, sample in enumerate(_iter_dataset(dataset)):
+    for i, sample in enumerate(dataset):
         image: Image.Image = sample["image"]
         c2w: np.ndarray = sample["c2w"]
         k: np.ndarray = sample["K"]
@@ -93,7 +79,7 @@ def _view_text(dataset: object) -> None:
     )
     console = Console(file=proc.stdin, force_terminal=True)
     try:
-        for i, sample in enumerate(_iter_dataset(dataset)):
+        for i, sample in enumerate(dataset):
             console.print(Panel(sample["text"], title=f"Sample {i}"))
     except BrokenPipeError:
         pass
@@ -118,13 +104,10 @@ def main() -> None:
     for t in annotated[1:]:
         union_type = union_type | t
 
-    Args = dataclasses.make_dataclass(  # noqa: N806
-        "Args",
-        [
-            ("dataset", union_type),
-            ("db_uri", str | None, dataclasses.field(default=None)),
-        ],
-    )
+    @dataclass
+    class Args:
+        dataset: union_type  # pyright: ignore[reportInvalidTypeForm]
+        db_uri: str | None = None
 
     tyro_conf = (tyro.conf.OmitArgPrefixes, tyro.conf.OmitSubcommandPrefixes)
     args = tyro.cli(Args, config=tyro_conf)

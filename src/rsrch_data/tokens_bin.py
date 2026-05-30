@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import TypedDict
 
 import numpy as np
+from tokenizers import Tokenizer
 
 from rsrch_data.registry import register_dataset
 
@@ -15,6 +16,9 @@ class Document(TypedDict):
 
     tokens: np.ndarray
     """A sequence of tokens for the doc, of shape (L,) and dtype uint16."""
+
+    text: str | None = None
+    """Decoded tokens, if `tokenizer_path` was provided."""
 
 
 class Split(TypedDict):
@@ -61,7 +65,11 @@ class TokensBinDocs(Sequence):
           train.index.bin
     """
 
-    def __init__(self, path: str | Path) -> None:
+    def __init__(
+        self,
+        path: str | Path,
+        tokenizer_path: str | None = None,
+    ) -> None:
         path = Path(path)
 
         meta_path = path.parent / f"{path.name}.json"
@@ -86,6 +94,11 @@ class TokensBinDocs(Sequence):
                 [info["start"] for _, info in ordered], dtype=np.uint64
             )
 
+        if tokenizer_path is not None:
+            self.tokenizer = Tokenizer.from_file(tokenizer_path)
+        else:
+            self.tokenizer = None
+
     def __len__(self) -> int:
         return len(self._offsets)
 
@@ -99,7 +112,10 @@ class TokensBinDocs(Sequence):
         shard_idx = int(np.searchsorted(self._shard_starts, start, side="right")) - 1
         base = int(self._shard_starts[shard_idx])
         tokens = np.array(self._shards[shard_idx][start - base : end - base])
-        return {"tokens": tokens}
+        sample = {"tokens": tokens}
+        if self.tokenizer is not None:
+            sample["text"] = self.tokenizer.decode(tokens)
+        return sample
 
     def read_tokens(self, start: int, end: int) -> np.ndarray:
         """Read a flat token slice [start, end), spanning shards if necessary."""
@@ -127,6 +143,9 @@ class Segment(TypedDict):
 
     tokens: np.ndarray
     """A fixed-size token segment, of shape (L,) and dtype uint16."""
+
+    text: str | None = None
+    """Decoded tokens, if `tokenizer_path` was provided."""
 
 
 def get_num_of_tokens(path: str | Path) -> int:
@@ -156,12 +175,17 @@ class TokensBinSegments:
         start: int | None = None,
         end: int | None = None,
         stride: int | None = None,
+        tokenizer_path: str | None = None,
     ) -> None:
         self._dataset = TokensBinDocs(path)
         self._seq_len = seq_len
         self._start = start if start is not None else 0
         self._end = end if end is not None else self._dataset.num_tokens
         self._stride = stride if stride is not None else seq_len
+        if tokenizer_path is not None:
+            self.tokenizer = Tokenizer.from_file(tokenizer_path)
+        else:
+            self.tokenizer = None
 
     def __len__(self) -> int:
         return len(range(self._start, self._end - self._seq_len, self._stride))
@@ -171,12 +195,18 @@ class TokensBinSegments:
         if index < 0:
             index += len(self)
         offset = self._start + index * self._stride
-        return {"tokens": self._dataset.read_tokens(offset, offset + self._seq_len)}
+        return self._get_sample(offset, offset + self._seq_len)
+
+    def _get_sample(self, start: int, end: int) -> Segment:
+        sample = {"tokens": self._dataset.read_tokens(start, end)}
+        if self.tokenizer is not None:
+            sample["text"] = self.tokenizer.decode(sample["tokens"])
+        return sample
 
     def __iter__(self) -> Iterator[Segment]:
         """Yield token windows in order."""
         for offset in range(self._start, self._end - self._seq_len, self._stride):
-            yield {"tokens": self._dataset.read_tokens(offset, offset + self._seq_len)}
+            yield self._get_sample(offset, offset + self._seq_len)
 
     def meta(self) -> Metadata:
         """Return the dataset metadata."""
