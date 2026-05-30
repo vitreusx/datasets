@@ -8,9 +8,11 @@ import numpy as np
 from PIL import Image
 from ruamel.yaml import YAML
 
+from rsrch_data.registry import register_dataset
 from rsrch_data.types.sem_seg import Metadata, Sample
 
 
+@register_dataset("nyu-depth-v2")
 class NYUDepthV2(Sequence):
     """NYU Depth V2 dataset."""
 

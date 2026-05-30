@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal, TypedDict
 
@@ -13,6 +14,7 @@ from rsrch_data._colmap.read_write_model import (
     read_cameras_binary,
     read_images_binary,
 )
+from rsrch_data.registry import register_dataset
 
 
 def _c2w(entry: object) -> np.ndarray:
@@ -51,7 +53,8 @@ class Frame(TypedDict):
     """Intrinsics array - shape (3, 3), dtype float32."""
 
 
-class MipNerf360:
+@register_dataset("mip-nerf360")
+class MipNerf360(Sequence):
     """Mip-NeRF 360 scene dataset.
 
     File structure::

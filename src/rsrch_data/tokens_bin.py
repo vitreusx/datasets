@@ -7,6 +7,8 @@ from typing import TypedDict
 
 import numpy as np
 
+from rsrch_data.registry import register_dataset
+
 
 class Document(TypedDict):
     """A single tokenized document."""
@@ -37,6 +39,7 @@ class Metadata(TypedDict):
     `{[split_path: str]: [begin token index, end token index]}`."""
 
 
+@register_dataset("tokens-bin-docs")
 class TokensBinDocs(Sequence):
     """Random-access dataset over a flat uint16 token binary file.
 
@@ -135,7 +138,8 @@ def get_num_of_tokens(path: str | Path) -> int:
     return meta["num_tokens"]
 
 
-class TokensBinLoader:
+@register_dataset("tokens-bin-segments")
+class TokensBinSegments:
     """Document-agnostic loader yielding fixed-size token windows.
 
     Iterates over the flat token stream in strides, ignoring document boundaries.

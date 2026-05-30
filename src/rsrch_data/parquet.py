@@ -6,11 +6,11 @@ from typing import Generic, TypeVar
 
 import pyarrow.parquet as pq
 
-T_batch = TypeVar("T_batch")
+SampleT = TypeVar("SampleT")
 
 
-class ParquetLoader(Iterable[T_batch], Generic[T_batch]):
-    """Iterates over one or more Parquet files in fixed-size batches."""
+class ParquetDataset(Iterable[SampleT], Generic[SampleT]):
+    """Iterates over one or more Parquet files."""
 
     def __init__(self, pq_files: list[str | Path], batch_size: int):
         self._pq_files = pq_files
@@ -20,11 +20,11 @@ class ParquetLoader(Iterable[T_batch], Generic[T_batch]):
         total = 0
         for pq_file_path in self._pq_files:
             pf = pq.ParquetFile(pq_file_path)
-            total += (pf.metadata.num_rows + self.batch_size - 1) // self.batch_size
+            total += pf.metadata.num_rows
         return total
 
-    def __iter__(self) -> Iterator[T_batch]:
+    def __iter__(self) -> Iterator[SampleT]:
         for pq_file_path in self._pq_files:
             pf = pq.ParquetFile(pq_file_path)
             for batch in pf.iter_batches(self.batch_size):
-                yield batch.to_pydict()
+                yield from batch.to_pylist()

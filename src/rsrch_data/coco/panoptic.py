@@ -9,6 +9,7 @@ import numpy as np
 from PIL import Image
 from ruamel.yaml import YAML
 
+from rsrch_data.registry import register_dataset
 from rsrch_data.types.panoptic_seg import Metadata
 
 from .utils.schema import SegmentInfo
@@ -26,6 +27,7 @@ class Sample(TypedDict):
     segments: list[SegmentInfo]
 
 
+@register_dataset("coco-panoptic")
 class COCOPanoptic(Sequence):
     """COCO panoptic segmentation dataset."""
 

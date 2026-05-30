@@ -8,6 +8,7 @@ from PIL import Image
 from pycocotools.coco import COCO
 from ruamel.yaml import YAML
 
+from rsrch_data.registry import register_dataset
 from rsrch_data.types.object_det import Metadata
 
 
@@ -31,10 +32,11 @@ class Detection(TypedDict):
 class Sample(TypedDict):
     """A COCO detection sample."""
 
-    image: Image
+    image: Image.Image
     objects: list[Detection]
 
 
+@register_dataset("coco-detection")
 class COCODetection(Sequence):
     """COCO detection dataset (bounding boxes only)."""
 

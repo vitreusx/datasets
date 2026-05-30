@@ -1,19 +1,20 @@
 """OpenWebText data loading."""
 
-from collections.abc import Iterable
 from pathlib import Path
 from typing import Literal, TypedDict
 
-import pyarrow.parquet as pq
+from rsrch_data.parquet import ParquetDataset
+from rsrch_data.registry import register_dataset
 
 
-class Batch(TypedDict):
-    """OpenWebText batch."""
+class Sample(TypedDict):
+    """OpenWebText sample."""
 
-    text: list[str]
+    text: str
 
 
-class OpenWebTextLoader(Iterable[Batch]):
+@register_dataset("openwebtext")
+class OpenWebText(ParquetDataset[Sample]):
     """Iterable loader over OpenWebText parquet files."""
 
     def __init__(
@@ -22,23 +23,8 @@ class OpenWebTextLoader(Iterable[Batch]):
         batch_size: int,
         split: Literal["train"] = "train",
     ):
-        self.data_root = Path(data_root)
-        self.batch_size = batch_size
+        data_root = Path(data_root)
+        pq_files = sorted([*(data_root / "plain_text").glob(f"{split}-*.parquet")])
+        super().__init__(pq_files, batch_size=batch_size)
+        self.data_root = data_root
         self.split = split
-
-        self._pq_files = sorted(
-            [*(self.data_root / "plain_text").glob(f"{self.split}-*.parquet")]
-        )
-
-    def __len__(self) -> int:
-        total = 0
-        for pq_file_path in self._pq_files:
-            pf = pq.ParquetFile(pq_file_path)
-            total += (pf.metadata.num_rows + self.batch_size - 1) // self.batch_size
-        return total
-
-    def __iter__(self):
-        for pq_file_path in self._pq_files:
-            pf = pq.ParquetFile(pq_file_path)
-            for batch in pf.iter_batches(self.batch_size):
-                yield batch.to_pydict()

@@ -7,6 +7,7 @@ from typing import IO, Literal
 import numpy as np
 from PIL import Image
 
+from rsrch_data.registry import register_dataset
 from rsrch_data.types.image_cls import Sample
 
 
@@ -31,6 +32,7 @@ def load_idx(fp: IO[bytes]) -> np.ndarray:
     return np.frombuffer(nbytes, dtype).reshape(*dims)
 
 
+@register_dataset("mnist")
 class MNIST:
     """MNIST dataset.
 

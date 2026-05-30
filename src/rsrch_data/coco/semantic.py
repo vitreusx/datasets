@@ -7,11 +7,13 @@ from typing import Literal
 import numpy as np
 from PIL import Image
 
+from rsrch_data.registry import register_dataset
 from rsrch_data.types.sem_seg import Metadata, Sample
 
 from .panoptic import COCOPanoptic
 
 
+@register_dataset("coco-semantic")
 class COCOSemantic(Sequence):
     """A custom dataset for semantic segmentation from COCO-Panoptic."""
 

@@ -7,9 +7,11 @@ from typing import Literal
 from PIL import Image
 from ruamel.yaml import YAML
 
+from rsrch_data.registry import register_dataset
 from rsrch_data.types.sem_seg import Metadata, Sample
 
 
+@register_dataset("voc2012")
 class VOCSegmentation(Sequence):
     """Pascal VOC2012 dataset (for semantic segmentation).
 

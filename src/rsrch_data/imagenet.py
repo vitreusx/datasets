@@ -6,6 +6,7 @@ from typing import Literal, TypedDict
 import pandas as pd
 from PIL import Image
 
+from rsrch_data.registry import register_dataset
 from rsrch_data.types.image_cls import Metadata
 
 
@@ -35,6 +36,7 @@ def parse_loc_synset_mapping(path: str | Path) -> pd.DataFrame:
     )
 
 
+@register_dataset("imagenet")
 class ImageNet:
     """ImageNet dataset.
 
@@ -122,7 +124,7 @@ class ImageNet:
         """Return sample dict (image, label) for train/val or raw image for test."""
         path = self.paths[idx]
         img_path = self.img_root / (path + ".JPEG")
-        img = Image.open(img_path).convert("RGB")
+        img = Image.open(img_path)
 
         if self.split in ("train", "val"):
             wnid = self.wnids[idx]

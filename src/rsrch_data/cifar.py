@@ -8,9 +8,11 @@ import numpy as np
 from PIL import Image
 from ruamel.yaml import YAML
 
+from rsrch_data.registry import register_dataset
 from rsrch_data.types.image_cls import Metadata, Sample
 
 
+@register_dataset("cifar-10")
 class CIFAR10:
     """CIFAR-10 dataset.
 
@@ -64,6 +66,7 @@ class CIFAR10:
         return Metadata(**data)
 
 
+@register_dataset("cifar-100")
 class CIFAR100:
     """CIFAR-100 dataset.
 

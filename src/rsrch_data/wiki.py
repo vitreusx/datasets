@@ -6,7 +6,10 @@ import xml.etree.ElementTree as ET
 from itertools import pairwise
 from pathlib import Path
 
+from rsrch_data.registry import register_dataset
 
+
+@register_dataset("wikipedia")
 class Wiki:
     """Wikipedia multistream dump dataset."""
 

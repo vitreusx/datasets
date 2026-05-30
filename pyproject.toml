@@ -14,6 +14,7 @@ dependencies = [
     "pyarrow>=22.0.0",
     "pycocotools>=2.0.10",
     "pydantic>=2.12.3",
+    "ruamel-yaml>=0.18.16",
     "tyro>=1.0.8",
 ]
 
@@ -35,6 +36,8 @@ dev = [
     "kaggle>=1.7.4.5",
     "pre-commit>=4.5.1",
     "ruff>=0.12.12",
+    "fiftyone>=1.16.0",
+    "rerun-sdk>=0.23.1",
 ]
 
 [tool.black]

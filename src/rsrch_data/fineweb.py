@@ -3,25 +3,27 @@
 from pathlib import Path
 from typing import Literal, TypedDict
 
-from rsrch_data.parquet import ParquetLoader
+from rsrch_data.parquet import ParquetDataset
+from rsrch_data.registry import register_dataset
 
 
-class Batch(TypedDict):
-    """FineWeb-Edu batch."""
+class Sample(TypedDict):
+    """FineWeb-Edu sample."""
 
-    text: list[str]
-    id: list[str]
-    dump: list[str]
-    url: list[str]
-    file_path: list[str]
-    language: list[str]
-    language_score: list[float]
-    token_count: list[int]
-    score: list[float]
-    int_score: list[int]
+    text: str
+    id: str
+    dump: str
+    url: str
+    file_path: str
+    language: str
+    language_score: float
+    token_count: int
+    score: float
+    int_score: int
 
 
-class FinewebEduLoader(ParquetLoader[Batch]):
+@register_dataset("fineweb-edu")
+class FinewebEdu(ParquetDataset[Sample]):
     """Iterable loader over FineWeb-Edu parquet files."""
 
     def __init__(
