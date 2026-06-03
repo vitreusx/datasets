@@ -38,6 +38,7 @@ dev = [
     "ruff>=0.12.12",
     "fiftyone>=1.16.0",
     "rerun-sdk>=0.23.1",
+    "gdown>=6.1.0",
 ]
 
 [tool.black]

@@ -42,7 +42,7 @@ class CIFAR10:
             with (data_root / "cifar-10-batches-py" / fname).open("rb") as f:
                 batch = pickle.load(f, encoding="bytes")
             images.append(batch[b"data"])
-            labels.extend(batch[b"label"])
+            labels.extend(batch[b"labels"])
 
         images = np.concatenate(images)
         images = images.reshape(-1, 3, 32, 32)
