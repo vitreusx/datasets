@@ -2,6 +2,7 @@
 
 import inspect
 import itertools
+import json
 import os
 import shutil
 import subprocess
@@ -15,6 +16,7 @@ import tyro
 from PIL import Image
 from rich.console import Console
 from rich.panel import Panel
+from rich.pretty import pretty_repr
 
 from rsrch_data.registry import get_registry
 
@@ -88,6 +90,23 @@ def _view_text(dataset: object) -> None:
         proc.wait()
 
 
+def _view_json(dataset: Any) -> None:
+    """View JSON dataset samples via rich + less."""
+    less = shutil.which("less") or "less"
+    proc = subprocess.Popen(  # noqa: S603
+        [less, "-R"], stdin=subprocess.PIPE, text=True
+    )
+    console = Console(file=proc.stdin, force_terminal=True)
+    try:
+        for i, sample in enumerate(dataset):
+            console.print(Panel(pretty_repr(sample), title=f"Sample {i}"))
+    except BrokenPipeError:
+        pass
+    finally:
+        proc.stdin.close()
+        proc.wait()
+
+
 def main() -> None:
     """View dataset samples."""
     annotated = [
@@ -116,6 +135,13 @@ def main() -> None:
     first = next(it)
     dataset = itertools.chain([first], it)
 
+    def _is_json_serializable() -> bool:
+        try:
+            json.dumps(first)
+            return True
+        except Exception:
+            return False
+
     if isinstance(first, Mapping) and "c2w" in first:
         _view_spatial(dataset)
     elif isinstance(first, Image.Image) or (
@@ -124,6 +150,8 @@ def main() -> None:
         _view_images(dataset, args.db_uri)
     elif isinstance(first, Mapping) and isinstance(first.get("text"), str):
         _view_text(dataset)
+    elif _is_json_serializable():
+        _view_json(dataset)
     else:
         msg = f"Don't know how to view samples of type {type(first)!r}"
         raise TypeError(msg)
