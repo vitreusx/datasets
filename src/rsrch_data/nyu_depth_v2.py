@@ -16,8 +16,8 @@ from rsrch_data.types.sem_seg import Metadata, Sample
 class NYUDepthV2(Sequence):
     """NYU Depth V2 dataset."""
 
-    def __init__(self, root: str | Path):
-        self.root = Path(root)
+    def __init__(self, data_root: str | Path):
+        self.root = Path(data_root)
         mat_file = self.root / "nyu_depth_v2_labeled.mat"
         self._f = h5py.File(mat_file)
 

@@ -5,13 +5,18 @@ from pathlib import Path
 from typing import Literal, TypedDict
 
 from PIL import Image
+from ruamel.yaml import YAML
 from typing_extensions import NotRequired
 
 from rsrch_data.registry import register_dataset
+from rsrch_data.types.sem_seg import Metadata
 
 
 class Sample(TypedDict):
-    """Sample from ADE20k (MIT Scene Parsing) dataset."""
+    """Sample from ADE20k (MIT Scene Parsing) dataset.
+
+    Extends the base semantic segmentation sample with optional labels for test split.
+    """
 
     image: Image.Image
     labels: NotRequired[Image.Image]
@@ -58,3 +63,11 @@ class ADE20k(Sequence):
             labels = Image.open(ann_path)
             return {"image": image, "labels": labels}
         return {"image": image}
+
+    @staticmethod
+    def meta() -> Metadata:
+        """Return semantic segmentation metadata loaded from the bundled YAML."""
+        yaml = YAML(typ="safe", pure=True)
+        with (Path(__file__).parent / "ade20k.yml").open() as f:
+            data = yaml.load(f)
+        return Metadata(**data)

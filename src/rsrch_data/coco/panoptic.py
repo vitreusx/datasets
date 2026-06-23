@@ -33,10 +33,10 @@ class COCOPanoptic(Sequence):
 
     def __init__(
         self,
-        root: str | Path,
+        data_root: str | Path,
         split: Literal["train", "val"] = "train",
     ):
-        self.root = Path(root).expanduser()
+        self.root = Path(data_root).expanduser()
         self.split = split
 
         ann_file = self.root / f"annotations/panoptic_{split}2017.json"

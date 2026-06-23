@@ -1,14 +1,16 @@
 """MNIST dataset loader."""
 
 import math
+from collections.abc import Sequence
 from pathlib import Path
 from typing import IO, Literal
 
 import numpy as np
 from PIL import Image
+from ruamel.yaml import YAML
 
 from rsrch_data.registry import register_dataset
-from rsrch_data.types.image_cls import Sample
+from rsrch_data.types.image_cls import Metadata, Sample
 
 
 def load_idx(fp: IO[bytes]) -> np.ndarray:
@@ -33,7 +35,7 @@ def load_idx(fp: IO[bytes]) -> np.ndarray:
 
 
 @register_dataset("mnist")
-class MNIST:
+class MNIST(Sequence):
     """MNIST dataset.
 
     File structure:
@@ -67,3 +69,11 @@ class MNIST:
         image = Image.fromarray(self.images[index])
         label = self.labels[index]
         return {"image": image, "label": label}
+
+    @staticmethod
+    def meta() -> Metadata:
+        """Return class metadata loaded from the bundled YAML."""
+        yaml = YAML(typ="safe", pure=True)
+        with (Path(__file__).parent / "mnist.yml").open() as f:
+            data = yaml.load(f)
+        return Metadata(**data)

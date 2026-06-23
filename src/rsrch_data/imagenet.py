@@ -1,20 +1,14 @@
 """ImageNet data loading."""
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal, TypedDict
+from typing import Literal
 
 import pandas as pd
 from PIL import Image
 
 from rsrch_data.registry import register_dataset
-from rsrch_data.types.image_cls import Metadata
-
-
-class Sample(TypedDict):
-    """An ImageNet sample (train/val splits)."""
-
-    image: Image.Image
-    label: int
+from rsrch_data.types.image_cls import Metadata, Sample
 
 
 def parse_loc_synset_mapping(path: str | Path) -> pd.DataFrame:
@@ -37,7 +31,7 @@ def parse_loc_synset_mapping(path: str | Path) -> pd.DataFrame:
 
 
 @register_dataset("imagenet")
-class ImageNet:
+class ImageNet(Sequence):
     """ImageNet dataset.
 
     The dataset may also be a subset of IN-1k or any compatible one.
@@ -73,11 +67,11 @@ class ImageNet:
 
     def __init__(
         self,
-        root: str | Path,
+        data_root: str | Path,
         split: Literal["train", "val", "test"] = "train",
     ):
         super().__init__()
-        self.root = Path(root).expanduser()
+        self.root = Path(data_root).expanduser()
         self.split = split
 
         self.img_root = self.root / "ILSVRC/Data/CLS-LOC" / split
@@ -132,8 +126,7 @@ class ImageNet:
             return {"image": img, "label": label}
         return img
 
-    @property
-    def metadata(self) -> Metadata:
+    def meta(self) -> Metadata:
         """Build image-classification metadata from the synset mapping file."""
         loc_synset_mapping_txt = self.root / "LOC_synset_mapping.txt"
         synset_df = parse_loc_synset_mapping(loc_synset_mapping_txt)

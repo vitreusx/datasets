@@ -9,7 +9,7 @@ from pycocotools.coco import COCO
 from ruamel.yaml import YAML
 
 from rsrch_data.registry import register_dataset
-from rsrch_data.types.object_det import Metadata
+from rsrch_data.types.object_det import Metadata, Sample
 
 
 class Box(NamedTuple):
@@ -21,19 +21,12 @@ class Box(NamedTuple):
     height: float
 
 
-class Detection(TypedDict):
-    """A single object detection annotation."""
+class DetectionWithCrowd(TypedDict):
+    """A single object detection annotation with iscrowd flag."""
 
     category: int
     bbox: Box
     iscrowd: bool | None
-
-
-class Sample(TypedDict):
-    """A COCO detection sample."""
-
-    image: Image.Image
-    objects: list[Detection]
 
 
 @register_dataset("coco-detection")
@@ -42,10 +35,10 @@ class COCODetection(Sequence):
 
     def __init__(
         self,
-        root: str | Path,
+        data_root: str | Path,
         split: Literal["train", "val"] = "train",
     ):
-        self.root = Path(root).expanduser()
+        self.root = Path(data_root).expanduser()
         self.split = split
 
         ann_path = self.root / f"annotations/instances_{split}2017.json"
@@ -74,7 +67,7 @@ class COCODetection(Sequence):
             for coco_ann in self.coco.loadAnns(ann_ids)
         ]
 
-        return {"image": img, "objects": detections}
+        return {"image": img, "dets": detections}
 
     @staticmethod
     def meta() -> Metadata:

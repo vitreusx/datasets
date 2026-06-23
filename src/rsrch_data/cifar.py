@@ -1,6 +1,7 @@
 """CIFAR-10 and CIFAR-100 dataset loaders."""
 
 import pickle
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
@@ -13,7 +14,7 @@ from rsrch_data.types.image_cls import Metadata, Sample
 
 
 @register_dataset("cifar-10")
-class CIFAR10:
+class CIFAR10(Sequence):
     """CIFAR-10 dataset.
 
     File structure:
@@ -67,7 +68,7 @@ class CIFAR10:
 
 
 @register_dataset("cifar-100")
-class CIFAR100:
+class CIFAR100(Sequence):
     """CIFAR-100 dataset.
 
     File structure:

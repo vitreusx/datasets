@@ -30,7 +30,7 @@ class Sample(TypedDict):
     """An object detection sample."""
 
     image: Image.Image
-    dets: Detection
+    dets: list[Detection]
 
 
 class Metadata:

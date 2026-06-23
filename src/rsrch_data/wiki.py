@@ -3,6 +3,7 @@
 import bz2
 import io
 import xml.etree.ElementTree as ET
+from collections.abc import Iterable, Iterator
 from itertools import pairwise
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from rsrch_data.registry import register_dataset
 
 
 @register_dataset("wikipedia")
-class Wiki:
+class Wiki(Iterable):
     """Wikipedia multistream dump dataset."""
 
     def __init__(self, data_root: str | Path, lang: str, version: str):
@@ -61,7 +62,7 @@ class Wiki:
 
         return xml.find(f".//page[id = '{id_}']")
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ET.Element]:
         index = []
         for line in self.index:
             offset, _, title = line.split(":", maxsplit=2)

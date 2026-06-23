@@ -23,7 +23,7 @@ class Box(NamedTuple):
 
 
 class Instance(TypedDict):
-    """A single instance annotation."""
+    """A single instance segmentation annotation."""
 
     category: int
     bbox: Box
@@ -32,7 +32,10 @@ class Instance(TypedDict):
 
 
 class Sample(TypedDict):
-    """A COCO instance segmentation sample."""
+    """A COCO instance segmentation sample.
+
+    Extends the base object detection sample with instance masks.
+    """
 
     image: Image.Image
     instances: list[Instance]
@@ -44,10 +47,10 @@ class COCOInstances(Sequence):
 
     def __init__(
         self,
-        root: str | Path,
+        data_root: str | Path,
         split: Literal["train", "val"] = "train",
     ):
-        self.root = Path(root).expanduser()
+        self.root = Path(data_root).expanduser()
         self.split = split
 
         ann_path = self.root / f"annotations/instances_{split}2017.json"
