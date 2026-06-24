@@ -107,6 +107,14 @@ def _view_json(dataset: Any) -> None:
         proc.wait()
 
 
+def _is_json_serializable(value: Any) -> bool:
+    try:
+        json.dumps(value)
+        return True
+    except Exception:
+        return False
+
+
 def main() -> None:
     """View dataset samples."""
     annotated = [
@@ -132,28 +140,21 @@ def main() -> None:
     args = tyro.cli(Args, config=tyro_conf)
 
     it = iter(args.dataset)
-    first = next(it)
-    dataset = itertools.chain([first], it)
+    sample = next(it)
+    dataset = itertools.chain([sample], it)
 
-    def _is_json_serializable() -> bool:
-        try:
-            json.dumps(first)
-            return True
-        except Exception:
-            return False
-
-    if isinstance(first, Mapping) and "c2w" in first:
+    if isinstance(sample, Mapping) and "c2w" in sample:
         _view_spatial(dataset)
-    elif isinstance(first, Image.Image) or (
-        isinstance(first, Mapping) and isinstance(first.get("image"), Image.Image)
+    elif isinstance(sample, Image.Image) or (
+        isinstance(sample, Mapping) and isinstance(sample.get("image"), Image.Image)
     ):
         _view_images(dataset, args.db_uri)
-    elif isinstance(first, Mapping) and isinstance(first.get("text"), str):
+    elif isinstance(sample, Mapping) and isinstance(sample.get("text"), str):
         _view_text(dataset)
-    elif _is_json_serializable():
+    elif _is_json_serializable(sample):
         _view_json(dataset)
     else:
-        msg = f"Don't know how to view samples of type {type(first)!r}"
+        msg = f"Don't know how to view samples of type {type(sample)!r}"
         raise TypeError(msg)
 
 

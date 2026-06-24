@@ -10,7 +10,7 @@ from pathlib import Path
 from rsrch_data.registry import register_dataset
 
 
-@register_dataset("wikipedia")
+@register_dataset("wiki")
 class Wiki(Iterable):
     """Wikipedia multistream dump dataset."""
 
@@ -26,8 +26,6 @@ class Wiki(Iterable):
 
         xml_path = f"{lang}wiki-{version}-pages-articles-multistream.xml.bz2"
         self.xml_path = self.data_root / xml_path
-
-        self._decomp = bz2.BZ2Decompressor()
 
     def __len__(self):
         return len(self.index)
@@ -47,13 +45,14 @@ class Wiki(Iterable):
         title = title.rstrip()
 
         with self.xml_path.open("rb") as f:
+            decomp = bz2.BZ2Decompressor()
             f.seek(offset)
             data = io.BytesIO()
             data.write(b"<root>")
             while True:
                 block = f.read(262144)
                 try:
-                    data.write(self._decomp.decompress(block))
+                    data.write(decomp.decompress(block))
                 except EOFError:
                     break
             data.write(b"</root>")

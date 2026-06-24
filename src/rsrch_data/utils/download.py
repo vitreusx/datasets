@@ -8,7 +8,7 @@ import zipfile
 from contextlib import ExitStack
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
-
+import bz2
 import httpx
 import requests
 from tqdm.auto import tqdm
@@ -148,13 +148,16 @@ def download(
 
 def download_and_extract(
     url: str,
-    dest_dir: str | Path,
+    dest_path: str | Path,
     archive_dest_path: str | Path | None = None,
     archive_dest_dir: str | Path | None = None,
     *,
     display_pbar: bool = True,
 ) -> None:
-    """Download an archive from url and extract it into dest_dir."""
+    """Download an archive from url and extract it into dest path.
+
+    Destination can be either a directory or a file, depending on the archive.
+    """
     with ExitStack() as stack:
         if archive_dest_path is not None:
             archive_dest_path = Path(archive_dest_path)
@@ -170,19 +173,25 @@ def download_and_extract(
             display_pbar=display_pbar,
         )
 
-        dest_dir = Path(dest_dir)
-        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest_path = Path(dest_path)
 
         archive_fmt = PurePosixPath(urlparse(url).path).suffix
         if archive_fmt == ".zip":
+            dest_path.mkdir(parents=True, exist_ok=True)
             with zipfile.ZipFile(archive_dest_path) as xf:
-                xf.extractall(dest_dir)  # noqa: S202
+                xf.extractall(dest_path)  # noqa: S202
         elif archive_fmt == ".tar":
+            dest_path.mkdir(parents=True, exist_ok=True)
             with tarfile.open(archive_dest_path, "r") as xf:
-                xf.extractall(dest_dir)  # noqa: S202
+                xf.extractall(dest_path)  # noqa: S202
         elif archive_fmt == ".tar.gz":
+            dest_path.mkdir(parents=True, exist_ok=True)
             with tarfile.open(archive_dest_path, "r:gz") as xf:
-                xf.extractall(dest_dir)  # noqa: S202
+                xf.extractall(dest_path)  # noqa: S202
+        elif archive_fmt.endswith(".bz2"):
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            with bz2.open(archive_dest_path) as xf, dest_path.open("rb") as f:
+                f.write(xf.read())
         else:
             msg = f"Unknown archive format {archive_fmt}"
             raise ValueError(msg)
