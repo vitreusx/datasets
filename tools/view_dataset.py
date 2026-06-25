@@ -110,7 +110,7 @@ def _view_json(dataset: Any) -> None:
 def _is_json_serializable(value: Any) -> bool:
     try:
         json.dumps(value)
-        return True
+        return True  # noqa: TRY300
     except Exception:
         return False
 

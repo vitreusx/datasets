@@ -2,17 +2,19 @@
 
 import bz2
 import io
+import re
 import xml.etree.ElementTree as ET
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterator, Sequence
 from itertools import pairwise
 from pathlib import Path
+from typing import TypedDict
 
 from rsrch_data.registry import register_dataset
 
 
-@register_dataset("wiki")
-class Wiki(Iterable):
-    """Wikipedia multistream dump dataset."""
+@register_dataset("wiki-xml")
+class WikiXml(Sequence):
+    """Wikipedia multistream dump dataset (Raw XML)."""
 
     def __init__(self, data_root: str | Path, lang: str, version: str):
         self.data_root = Path(data_root)
@@ -50,7 +52,7 @@ class Wiki(Iterable):
             data = io.BytesIO()
             data.write(b"<root>")
             while True:
-                block = f.read(262144)
+                block = f.read(4096)
                 try:
                     data.write(decomp.decompress(block))
                 except EOFError:
@@ -85,3 +87,52 @@ class Wiki(Iterable):
                 data.seek(0)
                 xml = ET.parse(data)  # noqa: S314
                 yield from xml.getroot()
+
+
+class TextSample(TypedDict):
+    """Text sample from Wikipedia dump."""
+
+    text: str
+
+
+@register_dataset("wiki-text")
+class WikiText(Sequence[TextSample]):
+    """Wikipedia multistream dump dataset (Text with templates)."""
+
+    def __init__(
+        self,
+        data_root: str | Path,
+        lang: str,
+        version: str,
+        remove_links: bool = False,
+    ):
+        super().__init__()
+        self.data_root = Path(data_root)
+        self.lang = lang
+        self.version = version
+        self.remove_links = remove_links
+        self._xml = WikiXml(data_root, lang=lang, version=version)
+
+    def __len__(self):
+        return len(self._xml)
+
+    def __getitem__(self, index: int) -> TextSample:
+        xml = self._xml[index]
+        text = xml.find("revision/text").text
+        if self.remove_links:
+            text = self._remove_links(text)
+        return {"text": text}
+
+    def __iter__(self) -> Iterator[TextSample]:
+        for xml in self._xml:
+            text = xml.find("revision/text").text
+            if self.remove_links:
+                text = self._remove_links(text)
+            yield {"text": text}
+
+    def _remove_links(self, text: str) -> str:
+        # For piped links [[Target|Display]], keep only the display text
+        text = re.sub(r"\[\[[^\[\]]*\|([^\[\]]*)\]\]", r"\1", text)
+        # Remove remaining links without pipes
+        text = re.sub(r"\[\[[^\[\]]*\]\]", "", text)
+        return text

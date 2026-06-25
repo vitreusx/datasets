@@ -79,4 +79,5 @@ ignore = [
     "D203",    # one-blank-line-before-class — conflicts with D211 (no-blank-line-before-class)
     "D213",    # multi-line-summary-second-line — conflicts with D212 (multi-line-summary-first-line)
     "COM812",  # missing-trailing-comma — conflicts with ruff formatter
+    "FBT",     # Boolean traps
 ]

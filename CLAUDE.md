@@ -9,7 +9,7 @@ Project structure:
 ```
 ├── scripts          # Scripts for e.g. downloading datasets
 ├── tools            # Tools for e.g. viewing datasets
-├── src      
+├── src
 │   └── rsrch_data   # Main package
 │       ├── types    # Type definitions for the dataset sample types
 │       ├── utils    # Common utils

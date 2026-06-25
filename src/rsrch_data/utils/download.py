@@ -1,6 +1,7 @@
 """File download and extraction utilities."""
 
 import asyncio
+import bz2
 import os
 import tarfile
 import tempfile
@@ -8,7 +9,7 @@ import zipfile
 from contextlib import ExitStack
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
-import bz2
+
 import httpx
 import requests
 from tqdm.auto import tqdm
