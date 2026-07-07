@@ -147,6 +147,33 @@ def download(
         raise ValueError(msg)
 
 
+def extract(archive_path: str | Path, dest_path: str | Path) -> None:
+    """Extract an archive into dest path."""
+    archive_path = Path(archive_path)
+    dest_path = Path(dest_path)
+
+    archive_fmt = archive_path.suffix
+    if archive_fmt == ".zip":
+        dest_path.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(archive_path) as xf:
+            xf.extractall(dest_path)  # noqa: S202
+    elif archive_fmt == ".tar":
+        dest_path.mkdir(parents=True, exist_ok=True)
+        with tarfile.open(archive_path, "r") as xf:
+            xf.extractall(dest_path)  # noqa: S202
+    elif archive_fmt == ".tar.gz":
+        dest_path.mkdir(parents=True, exist_ok=True)
+        with tarfile.open(archive_path, "r:gz") as xf:
+            xf.extractall(dest_path)  # noqa: S202
+    elif archive_fmt.endswith(".bz2"):
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        with bz2.open(archive_path) as xf, dest_path.open("rb") as f:
+            f.write(xf.read())
+    else:
+        msg = f"Unknown archive format {archive_fmt}"
+        raise ValueError(msg)
+
+
 def download_and_extract(
     url: str,
     dest_path: str | Path,
@@ -174,25 +201,7 @@ def download_and_extract(
             display_pbar=display_pbar,
         )
 
-        dest_path = Path(dest_path)
-
-        archive_fmt = PurePosixPath(urlparse(url).path).suffix
-        if archive_fmt == ".zip":
-            dest_path.mkdir(parents=True, exist_ok=True)
-            with zipfile.ZipFile(archive_dest_path) as xf:
-                xf.extractall(dest_path)  # noqa: S202
-        elif archive_fmt == ".tar":
-            dest_path.mkdir(parents=True, exist_ok=True)
-            with tarfile.open(archive_dest_path, "r") as xf:
-                xf.extractall(dest_path)  # noqa: S202
-        elif archive_fmt == ".tar.gz":
-            dest_path.mkdir(parents=True, exist_ok=True)
-            with tarfile.open(archive_dest_path, "r:gz") as xf:
-                xf.extractall(dest_path)  # noqa: S202
-        elif archive_fmt.endswith(".bz2"):
-            dest_path.parent.mkdir(parents=True, exist_ok=True)
-            with bz2.open(archive_dest_path) as xf, dest_path.open("rb") as f:
-                f.write(xf.read())
-        else:
-            msg = f"Unknown archive format {archive_fmt}"
-            raise ValueError(msg)
+        extract(
+            archive_path=archive_dest_path,
+            dest_path=dest_path,
+        )

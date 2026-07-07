@@ -41,6 +41,7 @@ dev = [
     "fiftyone>=1.16.0",
     "rerun-sdk>=0.23.1",
     "gdown>=6.1.0",
+    "setuptools>=66",
 ]
 
 [tool.black]
