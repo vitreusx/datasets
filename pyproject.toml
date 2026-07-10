@@ -27,6 +27,9 @@ build-backend = "uv_build"
 [tool.uv]
 package = true
 
+[tool.uv.sources]
+fiftyone-db = { path = "ext/fiftyone_db-1.4.1.tar.gz" }
+
 [dependency-groups]
 dev = [
     "huggingface-hub>=1.0.1",
@@ -42,6 +45,7 @@ dev = [
     "rerun-sdk>=0.23.1",
     "gdown>=6.1.0",
     "setuptools>=66",
+    "fiftyone-db",
 ]
 
 [tool.black]
