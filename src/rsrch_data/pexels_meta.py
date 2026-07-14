@@ -29,6 +29,7 @@ class PexelsMeta(ParquetDataset[Sample]):
         data_root: str | Path,
         batch_size: int,
     ):
+        """Load the Pexels photo metadata parquet file from `data_root`."""
         data_root = Path(data_root)
         super().__init__([data_root / "photos_sequential.parquet"], batch_size)
         self.data_root = data_root

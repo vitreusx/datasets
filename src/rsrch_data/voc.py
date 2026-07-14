@@ -40,6 +40,7 @@ class VOCSegmentation(Sequence):
         data_root: str | Path,
         split: Literal["train", "val"] = "train",
     ):
+        """Index the Pascal VOC2012 `split` image-ID list from `data_root`."""
         super().__init__()
         self.root = Path(data_root) / "VOCdevkit/VOC2012"
         self.split = split

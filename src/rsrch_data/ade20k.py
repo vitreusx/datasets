@@ -31,6 +31,7 @@ class ADE20k(Sequence):
         data_root: str | Path,
         split: Literal["train", "val", "test"] = "train",
     ):
+        """Index ADE20k image/annotation file names for `split` under `data_root`."""
         super().__init__()
         self.data_root = Path(data_root)
         self.split = split

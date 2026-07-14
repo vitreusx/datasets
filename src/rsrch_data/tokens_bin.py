@@ -70,6 +70,7 @@ class TokensBinDocs(Sequence):
         path: str | Path,
         tokenizer_path: str | None = None,
     ) -> None:
+        """Open the token binary file (and its shards/index/metadata) at `path`."""
         path = Path(path)
 
         meta_path = path.parent / f"{path.name}.json"
@@ -177,6 +178,7 @@ class TokensBinSegments:
         stride: int | None = None,
         tokenizer_path: str | None = None,
     ) -> None:
+        """Wrap a `TokensBinDocs` at `path`, windowed into `seq_len` segments."""
         self._dataset = TokensBinDocs(path)
         self._seq_len = seq_len
         self._start = start if start is not None else 0

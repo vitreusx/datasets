@@ -17,6 +17,7 @@ class NYUDepthV2(Sequence):
     """NYU Depth V2 dataset."""
 
     def __init__(self, data_root: str | Path):
+        """Open the NYU Depth V2 `.mat` file at `data_root`."""
         self.root = Path(data_root)
         mat_file = self.root / "nyu_depth_v2_labeled.mat"
         self._f = h5py.File(mat_file)

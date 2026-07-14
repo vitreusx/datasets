@@ -13,6 +13,7 @@ class ParquetDataset(Iterable[SampleT], Generic[SampleT]):
     """Iterates over one or more Parquet files."""
 
     def __init__(self, pq_files: list[str | Path], batch_size: int):
+        """Wrap a list of Parquet files, iterated in `batch_size` row batches."""
         self._pq_files = pq_files
         self.batch_size = batch_size
 

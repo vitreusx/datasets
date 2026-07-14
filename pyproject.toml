@@ -5,6 +5,7 @@ description = "DVC-tracked datasets repo & data loaders"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "anyio>=4.14.0",
     "datatrove>=0.3.0",
     "h5py>=3.15.1",
     "hf-xet>=1.2.0",
@@ -64,25 +65,19 @@ exclude = ["ext/*", "src/rsrch_data/_colmap/*"]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "T201",    # print() — intentional for CLI / training progress output
-    "S301",    # pickle.load — we only load our own trusted checkpoints
-    "TD002",   # TODO missing author — plain TODOs are fine here
-    "TD003",   # TODO missing issue link — plain TODOs are fine here
-    "FIX002",  # TODO comment — intentional notes, not blocking issues
-    "RUF002",  # Ambiguous × in docstrings — intentional mathematical notation
-    "ANN401",  # Any for JAX/nnx pytrees — no narrower public type available
-    "ANN003",  # **kwargs type — forwarded to GPTConfig, not annotatable narrowly
-    "ANN204",  # __init__ return type — always None, noise
-    "D105",    # magic method docstrings — behavior defined by Python data model
-    "D107",    # __init__ docstring — covered by class-level docstring
-    "BLE001",  # Blind except — required for JAX implementation dispatch fallback
-    "RET504",  # Assignment before return — intentional in residual block pattern
-    "PLR0913", # Too many arguments — scaling law formulas need all parameters
-    "PLR2004", # Magic value — p.ndim >= 2 is domain-idiomatic for weight matrices
-    "PLC0415", # Import not at top-level — intentional lazy import for optional deps
+    "PLR0913", # Too many arguments
     "INP001",  # ... is part of an implicit namespace package.
-    "D203",    # one-blank-line-before-class — conflicts with D211 (no-blank-line-before-class)
-    "D213",    # multi-line-summary-second-line — conflicts with D212 (multi-line-summary-first-line)
-    "COM812",  # missing-trailing-comma — conflicts with ruff formatter
-    "FBT",     # Boolean traps
+    "RET505",  # Unnecessary `else` after `return` statement
+    "ANN202",  # Missing return type annotation for private function
+    "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
+    "FBT",     # Flake Boolean Traps
+    "PLR2004", # Magic value used in comparison
+    "ARG002",  # Unused method argument: `key`
+    "D105",    # Missing docstring in magic method
+    "ANN204",  # Missing return type annotation for special method
+    "RET504",  # Remove unnecessary assignment
+    # Conflicts
+    "D203",   # one-blank-line-before-class — conflicts with D211 (no-blank-line-before-class)
+    "D213",   # multi-line-summary-second-line — conflicts with D212 (multi-line-summary-first-line)
+    "COM812", # missing-trailing-comma — conflicts with ruff formatter
 ]

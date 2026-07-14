@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from functools import cache
 
 import numpy as np
+from scipy.spatial.distance import cdist
 
 
 def rgb2hex(rgb: tuple[int, int, int]) -> str:
@@ -27,8 +28,6 @@ def create_base_palette() -> np.ndarray:
     Selects each successive color by maximizing Euclidean distance in RGB space
     from the colors already in the palette.
     """
-    from scipy.spatial.distance import cdist
-
     # Create grid of colors with spacing 32
     q = np.clip(np.arange(0, 257, 32), 0, 255)
     colors = np.stack(np.meshgrid(q, q, q), axis=-1).reshape(-1, 3)

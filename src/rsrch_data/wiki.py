@@ -17,6 +17,7 @@ class WikiXml(Sequence):
     """Wikipedia multistream dump dataset (Raw XML)."""
 
     def __init__(self, data_root: str | Path, lang: str, version: str):
+        """Store paths to the multistream XML dump and index for `lang`/`version`."""
         self.data_root = Path(data_root)
         self.lang = lang
         self.version = version
@@ -106,6 +107,7 @@ class WikiText(Sequence[TextSample]):
         version: str,
         remove_links: bool = False,
     ):
+        """Wrap a `WikiXml` dump, decoding raw XML pages into plain text."""
         super().__init__()
         self.data_root = Path(data_root)
         self.lang = lang

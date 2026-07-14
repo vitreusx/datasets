@@ -22,6 +22,7 @@ class COCOStuff(Sequence):
         root: str | Path,
         split: Literal["train", "val"] = "train",
     ):
+        """Load COCO-Stuff `split` pixel-map annotations from `root`."""
         self.root = Path(root).expanduser()
         self.split = split
 

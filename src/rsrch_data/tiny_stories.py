@@ -22,6 +22,7 @@ class TinyStories(Iterable):
         data_root: str | Path,
         split: Literal["train", "val"] = "train",
     ):
+        """Store the TinyStories `split` file path under `data_root`; parsed lazily."""
         self.data_root = Path(data_root)
         self.split = split
 

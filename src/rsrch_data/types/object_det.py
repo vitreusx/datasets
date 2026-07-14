@@ -41,6 +41,7 @@ class Metadata:
         classes: dict[int, str],
         ignore_index: int | None = None,
     ):
+        """Store the class-label mapping, validating that labels are contiguous."""
         self.classes = classes
         self.ignore_index = ignore_index
         if not is_contiguous([*self.classes]):

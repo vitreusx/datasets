@@ -53,6 +53,7 @@ class MNIST(Sequence):
         data_root: str | Path,
         split: Literal["train", "test"] = "train",
     ):
+        """Load MNIST images/labels for `split` from `data_root`."""
         data_root = Path(data_root)
         prefix = {"train": "train", "test": "t10k"}[split]
 

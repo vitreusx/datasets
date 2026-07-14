@@ -36,6 +36,7 @@ class Metadata:
         ignore_index: int | None = None,
         ignore_color: tuple[int, int, int] | str | None = None,
     ):
+        """Store the class-label mapping and ignore color; validates contiguity."""
         self.classes = classes
         self.ignore_index = ignore_index
         self.ignore_color = ignore_color

@@ -70,6 +70,7 @@ class ImageNet(Sequence):
         data_root: str | Path,
         split: Literal["train", "val", "test"] = "train",
     ):
+        """Index ImageNet `split` image paths and WordNet-ID labels from `data_root`."""
         super().__init__()
         self.root = Path(data_root).expanduser()
         self.split = split

@@ -18,7 +18,7 @@ from rsrch_data.registry import register_dataset
 
 
 def _c2w(entry: object) -> np.ndarray:
-    """Invert COLMAP world-to-camera to get a 4×4 camera-to-world matrix."""
+    """Invert COLMAP world-to-camera to get a 4x4 camera-to-world matrix."""
     w2c = np.eye(4)
     w2c[:3, :3] = entry.qvec2rotmat()  # type: ignore[attr-defined]
     w2c[:3, 3] = entry.tvec  # type: ignore[attr-defined]
@@ -26,7 +26,7 @@ def _c2w(entry: object) -> np.ndarray:
 
 
 def _build_k(camera: Camera, scale: float = 1.0) -> np.ndarray:
-    """Build a 3×3 intrinsics matrix from a COLMAP camera, optionally rescaled."""
+    """Build a 3x3 intrinsics matrix from a COLMAP camera, optionally rescaled."""
     p = camera.params
     if camera.model == "SIMPLE_PINHOLE":  # f, cx, cy
         fx = fy = p[0]
@@ -61,9 +61,9 @@ class MipNerf360(Sequence):
 
         <data_root>/
         ├── images/          # full-resolution JPEGs
-        ├── images_2/        # ×2 downsampled
-        ├── images_4/        # ×4 downsampled
-        ├── images_8/        # ×8 downsampled
+        ├── images_2/        # x2 downsampled
+        ├── images_4/        # x4 downsampled
+        ├── images_8/        # x8 downsampled
         └── sparse/0/
             ├── cameras.bin  # COLMAP intrinsics
             └── images.bin   # COLMAP extrinsics
@@ -81,6 +81,7 @@ class MipNerf360(Sequence):
         data_root: str | Path,
         downsample: Literal[1, 2, 4, 8] = 1,
     ) -> None:
+        """Load COLMAP cameras/poses for a scene at `data_root`, at `downsample`."""
         root = Path(data_root).expanduser()
         self._img_dir = root / ("images" if downsample == 1 else f"images_{downsample}")
         self._scale = 1.0 / downsample

@@ -1,4 +1,4 @@
-"""Download fineweb-edu to a local directory."""
+"""Download fineweb to a local directory."""
 
 from pathlib import Path
 from typing import Literal
@@ -10,7 +10,7 @@ from rsrch_data.utils import hf
 
 
 class Args(BaseModel):
-    """CLI args for the `get_fineweb_edu.py` script."""
+    """CLI args for the `get_fineweb.py` script."""
 
     data_root: Path
     """Directory to write the dataset"""
@@ -20,16 +20,16 @@ class Args(BaseModel):
 
 
 def main(args: Args) -> None:
-    """Download fineweb-edu to cfg.data_root."""
+    """Download fineweb to cfg.data_root."""
     args.data_root.mkdir(parents=True, exist_ok=True)
 
     allow_patterns_map = {
         "sample-10BT": ["sample/10BT/*"],
     }
 
-    print("Downloading fineweb-edu...")  # noqa: T201
+    print("Downloading fineweb...")  # noqa: T201
     hf.fetch(
-        dataset_id="HuggingFaceFW/fineweb-edu",
+        dataset_id="HuggingFaceFW/fineweb",
         data_root=args.data_root,
         allow_patterns=allow_patterns_map[args.subset],
     )

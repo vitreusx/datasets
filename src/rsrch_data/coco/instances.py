@@ -50,6 +50,7 @@ class COCOInstances(Sequence):
         data_root: str | Path,
         split: Literal["train", "val"] = "train",
     ):
+        """Load COCO `split` instance segmentation annotations from `data_root`."""
         self.root = Path(data_root).expanduser()
         self.split = split
 

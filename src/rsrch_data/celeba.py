@@ -45,6 +45,7 @@ class CelebA(Sequence):
         data_root: str | Path,
         split: Literal["train", "val", "test"] = "train",
     ):
+        """Index CelebA file IDs/attributes for `split` from `data_root`."""
         data_root = Path(data_root)
         self.img_dir = data_root / "img_align_celeba" / "img_align_celeba"
 

@@ -32,6 +32,7 @@ class FinewebEdu(ParquetDataset[Sample]):
         subset: Literal["sample-10BT"],
         batch_size: int,
     ):
+        """Load the FineWeb-Edu `subset` parquet shards from `data_root`."""
         subdir = {"sample-10BT": "sample/10BT"}[subset]
         subset_root = Path(data_root) / subdir
         pq_files = sorted([*subset_root.glob("*.parquet")])

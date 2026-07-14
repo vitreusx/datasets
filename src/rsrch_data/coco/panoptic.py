@@ -36,6 +36,7 @@ class COCOPanoptic(Sequence):
         data_root: str | Path,
         split: Literal["train", "val"] = "train",
     ):
+        """Load COCO `split` panoptic annotations from `data_root`."""
         self.root = Path(data_root).expanduser()
         self.split = split
 

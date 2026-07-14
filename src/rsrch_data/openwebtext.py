@@ -23,6 +23,7 @@ class OpenWebText(ParquetDataset[Sample]):
         batch_size: int,
         split: Literal["train"] = "train",
     ):
+        """Load the OpenWebText `split` parquet shards from `data_root`."""
         data_root = Path(data_root)
         pq_files = sorted([*(data_root / "plain_text").glob(f"{split}-*.parquet")])
         super().__init__(pq_files, batch_size=batch_size)

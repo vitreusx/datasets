@@ -10,6 +10,7 @@ from contextlib import ExitStack
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
 
+import anyio
 import httpx
 import requests
 from tqdm.auto import tqdm
@@ -25,6 +26,7 @@ async def async_download(
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     headers = {}
+    dest = anyio.Path(dest)
     if dest.exists():
         existing = dest.stat().st_size
         headers["Range"] = f"bytes={existing}-"
@@ -64,6 +66,7 @@ async def async_download_and_extract(
     If neither archive_dest_path nor archive_dest_dir is given, streams
     directly through a pipe into tarfile without saving to disk.
     """
+    dest_dir = anyio.Path(dest_dir)
     dest_dir.mkdir(parents=True, exist_ok=True)
 
     if archive_dest_path is not None or archive_dest_dir is not None:

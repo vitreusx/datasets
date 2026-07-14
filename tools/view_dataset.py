@@ -26,7 +26,8 @@ def _view_images(dataset: object, db_uri: str | None) -> None:
     if db_uri is not None:
         os.environ["FIFTYONE_DATABASE_URI"] = db_uri
 
-    import fiftyone as fo  # type: ignore[import-untyped]
+    # The imports are here to avoid loading them if unnecessary
+    import fiftyone as fo  # noqa: PLC0415
 
     def _fo_samples(tmp_path: Path) -> Iterator[Any]:
         for i, sample in enumerate(dataset):
@@ -46,8 +47,9 @@ def _view_images(dataset: object, db_uri: str | None) -> None:
 
 def _view_spatial(dataset: object) -> None:
     """View spatial dataset (images + camera poses) in Rerun."""
-    import numpy as np
-    import rerun as rr
+    # The imports are here to avoid loading them if unnecessary
+    import numpy as np  # noqa: PLC0415
+    import rerun as rr  # noqa: PLC0415
 
     rr.init("view_dataset", spawn=True)
 
@@ -111,7 +113,7 @@ def _is_json_serializable(value: Any) -> bool:
     try:
         json.dumps(value)
         return True  # noqa: TRY300
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 

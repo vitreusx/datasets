@@ -22,6 +22,7 @@ class COCOSemantic(Sequence):
         root: str | Path,
         split: Literal["train", "val"] = "train",
     ):
+        """Wrap a `COCOPanoptic` dataset, deriving semantic labels from panoptic ids."""
         super().__init__()
         self._panoptic = COCOPanoptic(root=root, split=split)
 

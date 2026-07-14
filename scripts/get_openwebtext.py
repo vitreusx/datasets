@@ -23,7 +23,7 @@ def main(cfg: Config) -> None:
     """Download OpenWebText to cfg.data_root."""
     cfg.data_root.mkdir(parents=True, exist_ok=True)
 
-    print("Downloading OpenWebText...")
+    print("Downloading OpenWebText...")  # noqa: T201
     hf.fetch(
         "Skylion007/openwebtext",
         allow_patterns=["plain_text/*", "README.md"],
