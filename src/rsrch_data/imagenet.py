@@ -1,10 +1,16 @@
 """ImageNet data loading."""
 
+import bisect
+import io
+import threading
+from collections import OrderedDict
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 from PIL import Image
 
 from rsrch_data.registry import register_dataset
@@ -134,3 +140,160 @@ class ImageNet(Sequence):
         label_names = synset_df["name"]
         classes = dict(enumerate(label_names))
         return Metadata(classes)
+
+
+PARQUET_SCHEMA = pa.schema(
+    [
+        pa.field("image", pa.binary()),
+        pa.field("label", pa.int32()),
+        pa.field("wnid", pa.string()),
+        pa.field("image_id", pa.string()),
+        pa.field("orig_index", pa.int32()),
+    ]
+)
+"""Schema for `ImageNetParquet` shards, shared by every writer of this format
+(`pack_in1k_to_parquet.py`, `create_in1k_subset.py`) -- this file is the
+single source of truth for it."""
+
+PARQUET_COMPRESSION = {
+    "image": "none",  # already JPEG-compressed; re-compressing wastes CPU
+    "label": "snappy",
+    "wnid": "snappy",
+    "image_id": "snappy",
+    "orig_index": "snappy",
+}
+
+
+class ParquetSample(Sample):
+    """`ImageNetParquet` sample.
+
+    :param image_id: The original `ImageNet.paths` entry (e.g.
+        `"n01443537/n01443537_10007"` for train, or a bare stem for val) --
+        i.e. which source file this row came from.
+    :param orig_index: This row's position in `ds.paths` before the pack
+        script's pre-shuffle (0-indexed) -- sorting by this column exactly
+        reconstructs the original `train_cls.txt`/`val.txt` order.
+    """
+
+    image_id: str
+    orig_index: int
+
+
+@register_dataset("imagenet-parquet")
+class ImageNetParquet(Sequence):
+    """Sequence-conforming loader over pre-shuffled ImageNet Parquet shards.
+
+    Produced by `rsrch_data/scripts/pack_in1k_to_parquet.py`. Intended for
+    *sequential* access (e.g. `DataLoader(..., shuffle=False)`): the on-disk
+    row order is already a random permutation from pack time, so random
+    per-epoch reshuffling on top of this would scatter reads across row
+    groups and defeat the cache below, without adding any real randomness
+    that isn't already there.
+
+    File structure:
+    ```
+    <data_root>/
+    ├── {split}-00000-of-000NN.parquet
+    ├── ...
+    └── LOC_synset_mapping.txt
+    ```
+    """
+
+    def __init__(
+        self,
+        data_root: str | Path,
+        split: Literal["train", "val"],
+        row_group_cache_size: int = 4,
+    ) -> None:
+        """Index parquet shard footers (no data read) for `split`.
+
+        :param data_root: Directory of Parquet shards, as written by
+            `pack_in1k_to_parquet.py`.
+        :param split: Which split's shards to load.
+        :param row_group_cache_size: Number of decoded row groups to keep
+            cached. Sized for sequential access by a handful of concurrent
+            reader threads, not for absorbing a fully random access pattern.
+        """
+        self.root = Path(data_root).expanduser()
+        self.split = split
+        self.row_group_cache_size = row_group_cache_size
+
+        self.files = sorted(self.root.glob(f"{split}-*.parquet"))
+        if not self.files:
+            msg = f"No {split}-*.parquet shards found under {self.root}"
+            raise FileNotFoundError(msg)
+
+        # Cumulative row offsets per file, and per-row-group row counts within
+        # each file -- built entirely from parquet footers, no data read.
+        self._offsets = [0]
+        self._row_group_rows: list[list[int]] = []
+        for file in self.files:
+            pf = pq.ParquetFile(file)
+            group_rows = [
+                pf.metadata.row_group(i).num_rows
+                for i in range(pf.metadata.num_row_groups)
+            ]
+            self._row_group_rows.append(group_rows)
+            self._offsets.append(self._offsets[-1] + sum(group_rows))
+
+        self._cache: OrderedDict[tuple[int, int], list[dict]] = OrderedDict()
+        self._cache_lock = threading.Lock()
+
+    def __len__(self) -> int:
+        """Return total number of samples across all shards."""
+        return self._offsets[-1]
+
+    def _locate(self, idx: int) -> tuple[int, int, int]:
+        """Map a global row index to (file_idx, row_group_idx, local_offset)."""
+        file_idx = bisect.bisect_right(self._offsets, idx) - 1
+        offset_in_file = idx - self._offsets[file_idx]
+        for row_group_idx, num_rows in enumerate(self._row_group_rows[file_idx]):
+            if offset_in_file < num_rows:
+                return file_idx, row_group_idx, offset_in_file
+            offset_in_file -= num_rows
+        msg = f"Index {idx} out of range for {self!r}"
+        raise IndexError(msg)
+
+    def _read_row_group(self, file_idx: int, row_group_idx: int) -> list[dict]:
+        """Return a row group's rows, decoding and caching on a cache miss.
+
+        On a concurrent miss, two threads may redundantly decode the same row
+        group; harmless (idempotent, no data race), just wasted work, and
+        rare given this is meant for sequential access.
+        """
+        key = (file_idx, row_group_idx)
+        with self._cache_lock:
+            rows = self._cache.get(key)
+            if rows is not None:
+                self._cache.move_to_end(key)
+                return rows
+
+        pf = pq.ParquetFile(self.files[file_idx])
+        rows = pf.read_row_group(row_group_idx).to_pylist()
+
+        with self._cache_lock:
+            self._cache[key] = rows
+            self._cache.move_to_end(key)
+            while len(self._cache) > self.row_group_cache_size:
+                self._cache.popitem(last=False)
+        return rows
+
+    def __getitem__(self, idx: int) -> ParquetSample:
+        """Return sample #idx, reading its row group (cached) as needed."""
+        if idx < 0:
+            idx += len(self)
+        file_idx, row_group_idx, local_offset = self._locate(idx)
+        rows = self._read_row_group(file_idx, row_group_idx)
+        row = rows[local_offset]
+        return {
+            "image": Image.open(io.BytesIO(row["image"])),
+            "label": row["label"],
+            "image_id": row["image_id"],
+            "orig_index": row["orig_index"],
+        }
+
+    def meta(self) -> Metadata:
+        """Build image-classification metadata from the synset mapping file."""
+        synset_df = parse_loc_synset_mapping(self.root / "LOC_synset_mapping.txt")
+        label_names = synset_df["name"]
+        return Metadata(dict(enumerate(label_names)))
