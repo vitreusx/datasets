@@ -6,6 +6,7 @@ import os
 import tarfile
 import tempfile
 import zipfile
+from collections.abc import Callable
 from contextlib import ExitStack
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
@@ -109,10 +110,13 @@ def download(
     dest_dir: str | Path | None = None,
     *,
     display_pbar: bool = True,
+    on_chunk: Callable[[int], None] | None = None,
 ) -> None:
     """Download url to dest_path (or dest_dir/<filename>).
 
-    Resumes the download if the file already exists.
+    Resumes the download if the file already exists. `on_chunk`, if given,
+    is called with the number of bytes written after every write -- useful
+    for progress reporting across multiple downloads.
     """
     if dest_path is not None:
         dest_path = Path(dest_path)
@@ -123,6 +127,8 @@ def download(
         raise ValueError(msg)
 
     if dest_path.exists():
+        if on_chunk is not None:
+            on_chunk(dest_path.stat().st_size)
         return
 
     scheme = urlparse(url).scheme
@@ -145,6 +151,8 @@ def download(
             for data in resp.iter_content(chunk_size=1024):
                 size = file.write(data)
                 bar.update(size)
+                if on_chunk is not None:
+                    on_chunk(size)
     else:
         msg = f"Unsupported scheme {scheme}"
         raise ValueError(msg)
