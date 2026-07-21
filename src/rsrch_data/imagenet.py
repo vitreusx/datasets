@@ -179,6 +179,11 @@ class ParquetSample(Sample):
     orig_index: int
 
 
+_NEEDED_COLUMNS = ("image", "label", "image_id", "orig_index")
+"""Columns `ImageNetParquet.__getitem__` reads back out -- `wnid` (see
+`PARQUET_SCHEMA`) is written but never read, so row-group reads skip it."""
+
+
 @register_dataset("imagenet-parquet")
 class ImageNetParquet(Sequence):
     """Sequence-conforming loader over pre-shuffled ImageNet Parquet shards.
@@ -236,7 +241,7 @@ class ImageNetParquet(Sequence):
             self._row_group_rows.append(group_rows)
             self._offsets.append(self._offsets[-1] + sum(group_rows))
 
-        self._cache: OrderedDict[tuple[int, int], list[dict]] = OrderedDict()
+        self._cache: OrderedDict[tuple[int, int], pa.Table] = OrderedDict()
         self._cache_lock = threading.Lock()
 
     def __len__(self) -> int:
@@ -254,8 +259,14 @@ class ImageNetParquet(Sequence):
         msg = f"Index {idx} out of range for {self!r}"
         raise IndexError(msg)
 
-    def _read_row_group(self, file_idx: int, row_group_idx: int) -> list[dict]:
-        """Return a row group's rows, decoding and caching on a cache miss.
+    def _read_row_group(self, file_idx: int, row_group_idx: int) -> pa.Table:
+        """Return a row group as a `pyarrow.Table`, caching on a cache miss.
+
+        Reads only the columns `__getitem__` actually uses (`wnid` is never
+        read back out), and keeps the result as a columnar `Table` rather
+        than eagerly materializing it into per-row Python dicts -- cheaper
+        given `__getitem__` only ever needs one row's fields at a time out of
+        it, not all of them.
 
         On a concurrent miss, two threads may redundantly decode the same row
         group; harmless (idempotent, no data race), just wasted work, and
@@ -263,33 +274,34 @@ class ImageNetParquet(Sequence):
         """
         key = (file_idx, row_group_idx)
         with self._cache_lock:
-            rows = self._cache.get(key)
-            if rows is not None:
+            table = self._cache.get(key)
+            if table is not None:
                 self._cache.move_to_end(key)
-                return rows
+                return table
 
         pf = pq.ParquetFile(self.files[file_idx])
-        rows = pf.read_row_group(row_group_idx).to_pylist()
+        table = pf.read_row_group(row_group_idx, columns=list(_NEEDED_COLUMNS))
 
         with self._cache_lock:
-            self._cache[key] = rows
+            self._cache[key] = table
             self._cache.move_to_end(key)
             while len(self._cache) > self.row_group_cache_size:
                 self._cache.popitem(last=False)
-        return rows
+        return table
 
     def __getitem__(self, idx: int) -> ParquetSample:
         """Return sample #idx, reading its row group (cached) as needed."""
         if idx < 0:
             idx += len(self)
         file_idx, row_group_idx, local_offset = self._locate(idx)
-        rows = self._read_row_group(file_idx, row_group_idx)
-        row = rows[local_offset]
+        table = self._read_row_group(file_idx, row_group_idx)
         return {
-            "image": Image.open(io.BytesIO(row["image"])),
-            "label": row["label"],
-            "image_id": row["image_id"],
-            "orig_index": row["orig_index"],
+            "image": Image.open(
+                io.BytesIO(table.column("image")[local_offset].as_py())
+            ),
+            "label": table.column("label")[local_offset].as_py(),
+            "image_id": table.column("image_id")[local_offset].as_py(),
+            "orig_index": table.column("orig_index")[local_offset].as_py(),
         }
 
     def meta(self) -> Metadata:
