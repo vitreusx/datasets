@@ -153,7 +153,7 @@ import threading
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 import numpy as np
 import rasterio
@@ -185,14 +185,30 @@ ATOM_NS = "http://www.w3.org/2005/Atom"
 GPF_NS = "https://data.geopf.fr/annexes/ressources/xsd/gpf_dl.xsd"
 NS = {"atom": ATOM_NS, "gpf_dl": GPF_NS}
 
-MAINLAND_TITLE_RE = re.compile(r"^RGEALTI_2-0_1M_ASC_LAMB93-IGN")
 DALLE_COORD_RE = re.compile(r"RGEALTI_FXX_(\d+)_(\d+)_MNT")
 NATIVE_CRS = "EPSG:2154"
+
+Resolution = Literal["1m", "5m"]
+TILE_KM = {"1m": 1, "5m": 5}
+"""Dalles are always 1000x1000px; only the km-grid step (and so the
+physical tile size and m/px) differs by resolution -- verified against a
+real 5m dalle (5km x 5km @ 5m/px, on a 5km-multiple grid, vs 1km x 1km @
+1m/px on a 1km-multiple grid for 1m)."""
+
+
+def _mainland_title_re(resolution: Resolution) -> re.Pattern[str]:
+    """Match mainland-France product titles at the given resolution."""
+    return re.compile(rf"^RGEALTI_2-0_{resolution.upper()}_ASC_LAMB93-IGN")
 
 
 class _CommonArgs(BaseModel):
     data_root: str
     feed_url: str = "https://data.geopf.fr/telechargement/resource/RGEALTI"
+    resolution: Resolution = "1m"
+    """"1m" or "5m". A data_root must be resolution-homogeneous: 1m and 5m
+    dalle filenames can collide (both use RGEALTI_FXX_{X}_{Y}_MNT_..., just
+    on a 1km vs 5km coordinate grid), so use a separate --data-root per
+    resolution rather than mixing them."""
 
 
 class BuildManifest(_CommonArgs):
@@ -278,13 +294,15 @@ def _archive_parts(sub_feed: etree._Element) -> list[tuple[str, int]]:
     return parts
 
 
-def _list_departments(pages: list[etree._Element]) -> list[tuple[str, str]]:
+def _list_departments(
+    pages: list[etree._Element], title_re: re.Pattern[str]
+) -> list[tuple[str, str]]:
     """Get (title, sub_feed_url) for each mainland department in the feed."""
     departments = []
     for page in pages:
         for entry in page.findall("atom:entry", NS):
             title = entry.find("atom:title", NS).text
-            if MAINLAND_TITLE_RE.match(title) is None:
+            if title_re.match(title) is None:
                 continue
             link = entry.find("atom:link[@rel='alternate']", NS)
             departments.append((title, link.get("href")))
@@ -294,13 +312,15 @@ def _list_departments(pages: list[etree._Element]) -> list[tuple[str, str]]:
 ZONE_LABEL_RE = re.compile(r"^D\d{2,3}[AB]?\s+(.*)$")
 
 
-def _department_info(pages: list[etree._Element]) -> dict[str, tuple[str, str, str]]:
+def _department_info(
+    pages: list[etree._Element], title_re: re.Pattern[str]
+) -> dict[str, tuple[str, str, str]]:
     """Get title -> (code, French name, edition date), from gpf_dl:zone/editionDate."""
     info = {}
     for page in pages:
         for entry in page.findall("atom:entry", NS):
             title = entry.find("atom:title", NS).text
-            if MAINLAND_TITLE_RE.match(title) is None:
+            if title_re.match(title) is None:
                 continue
             zone = entry.find("gpf_dl:zone", NS)
             if zone is None or zone.get("term") is None or zone.get("label") is None:
@@ -327,19 +347,34 @@ def _resolve_departments(
     return resolved
 
 
-def _dalle_bbox(name: str) -> tuple[float, float, float, float] | None:
-    """Exact native-CRS bbox of a dalle, derived from its own filename."""
+def _dalle_bbox(name: str, tile_km: int) -> tuple[float, float, float, float] | None:
+    """Exact native-CRS bbox of a dalle, derived from its own filename.
+
+    Generalizes the (verified byte-exact) 1m-tile formula
+    `(X*1000-0.5, Y*1000-999.5, X*1000+999.5, Y*1000+0.5)` to any tile size:
+    half a pixel is `tile_km/2` (cellsize in meters == tile_km, since every
+    dalle is always 1000x1000px regardless of resolution), and the tile
+    spans `tile_km*1000` meters per side.
+    """
     m = DALLE_COORD_RE.search(name)
     if m is None:
         return None
     x, y = int(m.group(1)), int(m.group(2))
-    return (x * 1000 - 0.5, y * 1000 - 999.5, x * 1000 + 999.5, y * 1000 + 0.5)
+    half_px = tile_km / 2
+    extent = tile_km * 1000
+    return (
+        x * 1000 - half_px,
+        y * 1000 - extent + half_px,
+        x * 1000 + extent - half_px,
+        y * 1000 + half_px,
+    )
 
 
 def _probe_department_folders(
     title: str,
     parts: list[tuple[str, int]],
     rate_limiter: RateLimiter,
+    tile_km: int,
 ) -> list[GeoChunk]:
     """List a department archive's solid blocks and build one Chunk per block."""
     urls = [url for url, _ in parts]
@@ -361,7 +396,7 @@ def _probe_department_folders(
         for name in folder_names:
             if not name.endswith(".asc"):
                 continue
-            bbox = _dalle_bbox(name)
+            bbox = _dalle_bbox(name, tile_km)
             if bbox is None:
                 continue
             tiles.append(
@@ -383,7 +418,9 @@ def _probe_department_folders(
     return chunks
 
 
-def build_manifest(data_root: Path, feed_url: str) -> list[GeoChunk]:
+def build_manifest(
+    data_root: Path, feed_url: str, resolution: Resolution = "1m"
+) -> list[GeoChunk]:
     """Build the full department-folder chunk list, resuming from any cache."""
     feeds_dir = data_root / "feeds"
     feeds_dir.mkdir(parents=True, exist_ok=True)
@@ -393,26 +430,29 @@ def build_manifest(data_root: Path, feed_url: str) -> list[GeoChunk]:
     done_titles = {c.id.split("#", 1)[0] for c in existing}
 
     pages = _paginate(feed_url, feeds_dir)
-    departments = _list_departments(pages)
+    departments = _list_departments(pages, _mainland_title_re(resolution))
     resolved = _resolve_departments(departments, feeds_dir)
 
+    tile_km = TILE_KM[resolution]
     rate_limiter = RateLimiter(per_second=1.0)
     chunks = list(existing)
     for title, parts in resolved:
         if title in done_titles:
             continue
-        new_chunks = _probe_department_folders(title, parts, rate_limiter)
+        new_chunks = _probe_department_folders(title, parts, rate_limiter, tile_km)
         chunks.extend(new_chunks)
         save_manifest(chunks, manifest_path)  # persist progress after each department
 
     return chunks
 
 
-def _load_or_build_manifest(data_root: Path, feed_url: str) -> list[GeoChunk]:
+def _load_or_build_manifest(
+    data_root: Path, feed_url: str, resolution: Resolution = "1m"
+) -> list[GeoChunk]:
     manifest_path = data_root / "manifest.json"
     if manifest_path.exists():
         return load_manifest(manifest_path)
-    return build_manifest(data_root, feed_url)
+    return build_manifest(data_root, feed_url, resolution)
 
 
 def _select_by_budget(
@@ -553,12 +593,14 @@ def _match_departments(chunks: list[GeoChunk], wanted: list[str]) -> list[GeoChu
 
 
 def _run_build_manifest(args: BuildManifest) -> None:
-    chunks = build_manifest(Path(args.data_root), args.feed_url)
+    chunks = build_manifest(Path(args.data_root), args.feed_url, args.resolution)
     print(f"{len(chunks)} chunks -> {Path(args.data_root) / 'manifest.json'}")  # noqa: T201
 
 
 def _run_list_chunks(args: ListChunks) -> None:
-    chunks = _load_or_build_manifest(Path(args.data_root), args.feed_url)
+    chunks = _load_or_build_manifest(
+        Path(args.data_root), args.feed_url, args.resolution
+    )
     if args.region is not None:
         chunks = chunks_intersecting(chunks, args.region, "EPSG:4326")
 
@@ -570,9 +612,9 @@ def _run_list_chunks(args: ListChunks) -> None:
 
 def _run_list_departments(args: ListDepartments) -> None:
     data_root = Path(args.data_root)
-    chunks = _load_or_build_manifest(data_root, args.feed_url)
+    chunks = _load_or_build_manifest(data_root, args.feed_url, args.resolution)
     pages = _paginate(args.feed_url, data_root / "feeds")
-    info = _department_info(pages)
+    info = _department_info(pages, _mainland_title_re(args.resolution))
 
     by_dept: dict[str, list[GeoChunk]] = defaultdict(list)
     for c in chunks:
@@ -602,7 +644,7 @@ def _run_list_departments(args: ListDepartments) -> None:
 
 def _run_download(args: Download) -> None:
     data_root = Path(args.data_root)
-    chunks = _load_or_build_manifest(data_root, args.feed_url)
+    chunks = _load_or_build_manifest(data_root, args.feed_url, args.resolution)
 
     if args.chunk_ids is not None:
         wanted = set(args.chunk_ids)
