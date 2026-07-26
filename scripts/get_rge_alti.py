@@ -594,7 +594,7 @@ def _match_departments(chunks: list[GeoChunk], wanted: list[str]) -> list[GeoChu
 
 def _run_build_manifest(args: BuildManifest) -> None:
     chunks = build_manifest(Path(args.data_root), args.feed_url, args.resolution)
-    print(f"{len(chunks)} chunks -> {Path(args.data_root) / 'manifest.json'}")  # noqa: T201
+    print(f"{len(chunks)} chunks -> {Path(args.data_root) / 'manifest.json'}")
 
 
 def _run_list_chunks(args: ListChunks) -> None:

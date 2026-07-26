@@ -22,7 +22,7 @@ def main(cfg: Config) -> None:
     """Download UVDoc to a local directory."""
     cfg.data_root.mkdir(parents=True, exist_ok=True)
 
-    print("Downloading UVDoc...")  # noqa: T201
+    print("Downloading UVDoc...")
     download_and_extract(
         url=cfg.uvdoc_final_url,
         dest_dir=cfg.data_root,

@@ -22,7 +22,7 @@ def main(cfg: Config) -> None:
     """Download DocLayNet to a local directory."""
     cfg.data_root.mkdir(parents=True, exist_ok=True)
 
-    print("Downloading DocLayNet...")  # noqa: T201
+    print("Downloading DocLayNet...")
     download_and_extract(
         url=cfg.core_zip_url,
         dest_dir=cfg.data_root / "DocLayNet_core",

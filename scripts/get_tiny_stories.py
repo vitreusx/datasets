@@ -23,7 +23,7 @@ def main(cfg: Config) -> None:
     """Download OpenWebText to cfg.data_root."""
     cfg.data_root.mkdir(parents=True, exist_ok=True)
 
-    print("Downloading TinyStories...")  # noqa: T201
+    print("Downloading TinyStories...")
     hf.fetch(
         "roneneldan/TinyStories",
         allow_patterns=[

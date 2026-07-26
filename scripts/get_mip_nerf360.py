@@ -27,7 +27,7 @@ def main(cfg: Config) -> None:
     """Download mip-NeRF 360 to cfg.data_root."""
     cfg.data_root.mkdir(parents=True, exist_ok=True)
 
-    print("Downloading mip-NeRF 360...")  # noqa: T201
+    print("Downloading mip-NeRF 360...")
     download_and_extract(cfg.part1_url, cfg.data_root / "part1")
     download_and_extract(cfg.part2_url, cfg.data_root / "part2")
 

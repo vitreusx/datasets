@@ -207,7 +207,7 @@ def _run_build_manifest(args: BuildManifest) -> None:
     chunks = build_manifest(feed_path)
     manifest_path = data_root / "manifest.json"
     save_manifest(chunks, manifest_path)
-    print(f"{len(chunks)} chunks -> {manifest_path}")  # noqa: T201
+    print(f"{len(chunks)} chunks -> {manifest_path}")
 
 
 def _run_list_chunks(args: ListChunks) -> None:

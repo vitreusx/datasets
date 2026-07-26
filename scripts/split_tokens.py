@@ -72,8 +72,8 @@ def main(args: Args) -> None:
         )
 
     train_tokens = source.num_tokens - val_tokens
-    print(f"{args.train_split}: {len(train_indices)} docs, {train_tokens} tokens")  # noqa: T201
-    print(f"{args.val_split}: {len(val_indices)} docs, {val_tokens} tokens")  # noqa: T201
+    print(f"{args.train_split}: {len(train_indices)} docs, {train_tokens} tokens")
+    print(f"{args.val_split}: {len(val_indices)} docs, {val_tokens} tokens")
 
 
 if __name__ == "__main__":

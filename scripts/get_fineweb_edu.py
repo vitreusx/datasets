@@ -27,7 +27,7 @@ def main(args: Args) -> None:
         "sample-10BT": ["sample/10BT/*"],
     }
 
-    print("Downloading fineweb-edu...")  # noqa: T201
+    print("Downloading fineweb-edu...")
     hf.fetch(
         dataset_id="HuggingFaceFW/fineweb-edu",
         data_root=args.data_root,

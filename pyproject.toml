@@ -82,6 +82,7 @@ ignore = [
     "D105",    # Missing docstring in magic method
     "ANN204",  # Missing return type annotation for special method
     "RET504",  # Remove unnecessary assignment
+    "T201",    # `print` found
     # Conflicts
     "D203",   # one-blank-line-before-class — conflicts with D211 (no-blank-line-before-class)
     "D213",   # multi-line-summary-second-line — conflicts with D212 (multi-line-summary-first-line)
