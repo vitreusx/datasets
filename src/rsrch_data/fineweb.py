@@ -1,4 +1,4 @@
-"""FineWeb-Edu data loading."""
+"""FineWeb data loading."""
 
 from pathlib import Path
 from typing import Literal, TypedDict
@@ -8,7 +8,7 @@ from rsrch_data.registry import register_dataset
 
 
 class Sample(TypedDict):
-    """FineWeb-Edu sample."""
+    """FineWeb sample."""
 
     text: str
     id: str
@@ -22,9 +22,9 @@ class Sample(TypedDict):
     int_score: int
 
 
-@register_dataset("fineweb-edu")
-class FinewebEdu(ParquetDataset[Sample]):
-    """Iterable loader over FineWeb-Edu parquet files."""
+@register_dataset("fineweb")
+class Fineweb(ParquetDataset[Sample]):
+    """Iterable loader over FineWeb parquet files."""
 
     def __init__(
         self,
@@ -32,7 +32,7 @@ class FinewebEdu(ParquetDataset[Sample]):
         subset: Literal["sample-10BT"],
         batch_size: int,
     ):
-        """Load the FineWeb-Edu `subset` parquet shards from `data_root`."""
+        """Load the FineWeb `subset` parquet shards from `data_root`."""
         subdir = {"sample-10BT": "sample/10BT"}[subset]
         subset_root = Path(data_root) / subdir
         pq_files = sorted([*subset_root.glob("*.parquet")])

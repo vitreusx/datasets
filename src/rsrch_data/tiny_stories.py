@@ -1,5 +1,6 @@
 """TinyStories dataset."""
 
+import itertools
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Literal, TypedDict
@@ -44,3 +45,18 @@ class TinyStories(Iterable):
                     left = docs[-1]
         if len(left) > 0:
             yield {"text": left}
+
+    def iter_from(self, start: int = 0) -> Iterator[Sample]:
+        """Iterate samples sequentially, discarding the first `start` items.
+
+        Documents are delimited by scanning raw text for `<|endoftext|>`
+        markers, so there's no offset index to seek with -- this just reads
+        and discards everything before `start`. Add a proper seek index
+        later if this turns out to matter.
+
+        :param start: Number of leading samples to skip.
+        """
+        if start < 0:
+            msg = f"start={start} must be non-negative ({self!r} has no known length)"
+            raise ValueError(msg)
+        return itertools.islice(self, start, None)

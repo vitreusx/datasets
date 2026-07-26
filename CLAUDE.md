@@ -41,7 +41,7 @@ class MyDataset(Sequence):
         """Get metadata about the dataset (optional)."""
 ```
 
-> Note: The base class can be omitted, as long as the class is a sequence (i.e., implements `__len__` and `__getitem__`).
+> Note: `Sequence` must be the parent class.
 
 In some cases, when the dataset is iterable-only, the contract looks like:
 
@@ -62,11 +62,14 @@ class MyDataset(Iterable):
     def __iter__(self) -> Iterator[Sample]:
         """Create dataset iterator."""
 
+    def iter_from(self, start: int = 0) -> Iterator[Sample]:
+        """Create dataset iterator, skipping first `start` items."""
+
     def meta(self) -> Metadata:
         """Get metadata about the dataset (optional)."""
 ```
 
-> Note: The base class can be omitted, as long as the class is an iterable (i.e., implements `__iter__`).
+> Note: `Iterable` must be the parent class.
 
 The `Sample` class is a `TypedDict` with specifies what the fields of the item are going
 to be. For example:

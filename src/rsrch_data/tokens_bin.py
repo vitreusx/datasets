@@ -50,45 +50,48 @@ class TokensBinDocs(Sequence):
     The file and optional shards are produced by `tokenize_text_dataset`.
     Each item is a single tokenized document returned as a uint16 token array.
 
-    Expected file layout for ``path = "data/train.bin"``::
+    Expected file layout::
 
-        data/
-          train.bin             # token data (single-file case)
-          train.bin.json        # metadata sidecar
-          train.index.bin       # per-document start offsets (uint64)
+        <data_root>/
+          <split>.bin             # token data (single-file case)
+          <split>.bin.json        # metadata sidecar
+          <split>.index.bin       # per-document start offsets (uint64)
 
         # or, when sharded:
-          train-00000-of-00003.bin
-          train-00001-of-00003.bin
-          train-00002-of-00003.bin
-          train.bin.json
-          train.index.bin
+          <split>-00000-of-00003.bin
+          <split>-00001-of-00003.bin
+          <split>-00002-of-00003.bin
+          <split>.bin.json
+          <split>.index.bin
     """
 
     def __init__(
         self,
-        path: str | Path,
+        data_root: str | Path,
+        split: str = "train",
         tokenizer_path: str | None = None,
     ) -> None:
-        """Open the token binary file (and its shards/index/metadata) at `path`."""
-        path = Path(path)
+        """Open the token binary file and shards/index/meta at `data_root`/`split`."""
+        data_root = Path(data_root)
 
-        meta_path = path.parent / f"{path.name}.json"
+        meta_path = data_root / f"{split}.bin.json"
         with meta_path.open() as f:
             self._meta: Metadata = json.load(f)
 
-        index_path = path.parent / f"{path.stem}.index.bin"
+        index_path = data_root / f"{split}.index.bin"
         self._offsets = np.fromfile(index_path, dtype=np.uint64)
         self.num_tokens: int = self._meta["num_tokens"]
 
         splits = self._meta.get("splits", {})
         if not splits:
-            self._shards = [np.memmap(path, dtype=np.uint16, mode="r")]
+            self._shards = [
+                np.memmap(data_root / f"{split}.bin", dtype=np.uint16, mode="r")
+            ]
             self._shard_starts = np.array([0], dtype=np.uint64)
         else:
             ordered = sorted(splits.items(), key=lambda kv: kv[1]["start"])
             self._shards = [
-                np.memmap(path.parent / name, dtype=np.uint16, mode="r")
+                np.memmap(data_root / name, dtype=np.uint16, mode="r")
                 for name, _ in ordered
             ]
             self._shard_starts = np.array(
@@ -149,17 +152,16 @@ class Segment(TypedDict):
     """Decoded tokens, if `tokenizer_path` was provided."""
 
 
-def get_num_of_tokens(path: str | Path) -> int:
+def get_num_of_tokens(data_root: str | Path, split: str = "train") -> int:
     """Return the total token count from the JSON sidecar of a binary token file."""
-    path = Path(path)
-    meta_path = path.parent / f"{path.name}.json"
+    meta_path = Path(data_root) / f"{split}.bin.json"
     with meta_path.open() as f:
         meta: Metadata = json.load(f)
     return meta["num_tokens"]
 
 
 @register_dataset("tokens-bin-segments")
-class TokensBinSegments:
+class TokensBinSegments(Sequence):
     """Document-agnostic loader yielding fixed-size token windows.
 
     Iterates over the flat token stream in strides, ignoring document boundaries.
@@ -170,16 +172,17 @@ class TokensBinSegments:
 
     def __init__(
         self,
-        path: str | Path,
+        data_root: str | Path,
         seq_len: int,
+        split: str = "train",
         *,
         start: int | None = None,
         end: int | None = None,
         stride: int | None = None,
         tokenizer_path: str | None = None,
     ) -> None:
-        """Wrap a `TokensBinDocs` at `path`, windowed into `seq_len` segments."""
-        self._dataset = TokensBinDocs(path)
+        """Wrap `data_root`/`split` in `TokensBinDocs`, windowed into `seq_len`."""
+        self._dataset = TokensBinDocs(data_root, split=split)
         self._seq_len = seq_len
         self._start = start if start is not None else 0
         self._end = end if end is not None else self._dataset.num_tokens

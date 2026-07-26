@@ -3,7 +3,7 @@
 import json
 import shutil
 import tempfile
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 
@@ -30,26 +30,21 @@ class Split(TypedDict):
     end: int
 
 
-def tokenize_text_dataset(  # noqa: C901, PLR0915
-    loader: Iterable[Batch],
-    tokenizer: Tokenizer,
+def write_token_docs(  # noqa: PLR0915
+    docs: Iterable[np.ndarray],
     dest: str | Path,
     *,
+    total: int | None = None,
     progress: bool = True,
     max_shard_size: str = "4G",
     tokenizer_id: str | None = None,
 ) -> None:
-    """Tokenize text dataset into a flat sequence of `np.uint16` values.
+    """Write pre-tokenized uint16 documents with shard rotation + metadata + index.
 
-    The sequence is put into `dest`. If the total size exceeds `max_shared_size`,
-    it's split in the following fashion:
-
-    - `{dest.stem}-000xx-of-000yy.{dest.suffix}` for the splits.
-
-    Additionally, following files are created:
-    - `{dest}.json` containing the metadata - see `Metadata` for more details.
-    - `{dest.stem}.index.bin`, containing the start indices (global offsets) for
-      each document
+    Same on-disk layout as `tokenize_text_dataset` (see `Metadata` in
+    `rsrch_data/tokens_bin.py`): `{dest}` (or `{dest.stem}-NNNNN-of-MMMMM{dest.suffix}`
+    shards if `max_shard_size` is exceeded), `{dest.name}.json`,
+    `{dest.stem}.index.bin`.
     """
     dest = Path(dest)
     max_bytes = parse_size(max_shard_size)
@@ -73,23 +68,19 @@ def tokenize_text_dataset(  # noqa: C901, PLR0915
     current_shard_tokens = 0
 
     try:
-        total = len(loader) if hasattr(loader, "__len__") else None
-        pbar = tqdm(loader, unit="batch", total=total, disable=not progress)
-        for batch in pbar:
-            for enc in tokenizer.encode_batch(batch["text"]):
-                ids = np.array(enc.ids, dtype=np.uint16)
+        pbar = tqdm(docs, unit="doc", total=total, disable=not progress)
+        for ids in pbar:
+            if current_shard_tokens >= max_tokens_per_shard:
+                shard_file.close()
+                shard_starts.append(total_tokens)
+                shard_file, _ = _open_shard()
+                current_shard_tokens = 0
 
-                if current_shard_tokens >= max_tokens_per_shard:
-                    shard_file.close()
-                    shard_starts.append(total_tokens)
-                    shard_file, _ = _open_shard()
-                    current_shard_tokens = 0
-
-                doc_offsets.append(total_tokens)
-                ids.tofile(shard_file)
-                total_tokens += len(ids)
-                current_shard_tokens += len(ids)
-                num_documents += 1
+            doc_offsets.append(total_tokens)
+            ids.tofile(shard_file)
+            total_tokens += len(ids)
+            current_shard_tokens += len(ids)
+            num_documents += 1
             pbar.set_postfix(docs=num_documents, tok=f"{total_tokens / 1e9:.2f}B")
 
         shard_file.close()
@@ -129,4 +120,58 @@ def tokenize_text_dataset(  # noqa: C901, PLR0915
 
     np.array(doc_offsets, dtype=np.uint64).tofile(
         dest.parent / f"{dest.stem}.index.bin"
+    )
+
+
+def tokenize_text_dataset(
+    loader: Iterable[Batch],
+    tokenizer: Tokenizer,
+    dest: str | Path,
+    *,
+    progress: bool = True,
+    max_shard_size: str = "4G",
+    tokenizer_id: str | None = None,
+) -> None:
+    """Tokenize text dataset into a flat sequence of `np.uint16` values.
+
+    The sequence is put into `dest`. If the total size exceeds `max_shared_size`,
+    it's split in the following fashion:
+
+    - `{dest.stem}-000xx-of-000yy.{dest.suffix}` for the splits.
+
+    Additionally, following files are created:
+    - `{dest}.json` containing the metadata - see `Metadata` for more details.
+    - `{dest.stem}.index.bin`, containing the start indices (global offsets) for
+      each document
+    """
+    # `hasattr(loader, "__len__")` isn't reliable here -- a wrapper like
+    # `_BatchedLoader` can define `__len__` unconditionally and have it
+    # raise `TypeError` itself when the underlying dataset has none, so
+    # catching that directly is the robust check.
+    try:
+        total = len(loader)
+    except TypeError:
+        total = None
+
+    # Batch-level progress bar (with docs=/tok= postfix) lives here, so
+    # `write_token_docs` sees a flat, un-batched generator and runs with its
+    # own progress bar disabled.
+    def _tokenize_docs() -> Iterator[np.ndarray]:
+        pbar = tqdm(loader, unit="batch", total=total, disable=not progress)
+        num_documents = 0
+        total_tokens = 0
+        for batch in pbar:
+            for enc in tokenizer.encode_batch(batch["text"]):
+                ids = np.array(enc.ids, dtype=np.uint16)
+                num_documents += 1
+                total_tokens += len(ids)
+                yield ids
+            pbar.set_postfix(docs=num_documents, tok=f"{total_tokens / 1e9:.2f}B")
+
+    write_token_docs(
+        _tokenize_docs(),
+        dest,
+        progress=False,
+        max_shard_size=max_shard_size,
+        tokenizer_id=tokenizer_id,
     )

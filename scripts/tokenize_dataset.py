@@ -27,13 +27,15 @@ class _BatchedLoader:
         self._dataset = dataset
         self._batch_size = batch_size
 
-        if hasattr(self._dataset, "__len__"):
+    def __len__(self) -> int:
+        """Return number of batches; raises `TypeError` if `dataset` has no length.
 
-            def __len__(self) -> int:  # noqa: ANN001, N807
-                """Return number of batches."""
-                return math.ceil(len(self._dataset) / self._batch_size)  # type: ignore[arg-type]
-
-            self.__len__ = __len__
+        Must be a real method, not an instance attribute assigned
+        conditionally in `__init__` -- `len()` always looks up `__len__` on
+        the type, never on the instance, so an instance-attribute assignment
+        (the previous approach here) is silently never called.
+        """
+        return math.ceil(len(self._dataset) / self._batch_size)  # type: ignore[arg-type]
 
     def __iter__(self) -> Iterator[dict[str, list[str]]]:
         """Yield batches of text strings."""
