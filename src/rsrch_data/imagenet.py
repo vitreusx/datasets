@@ -2,9 +2,7 @@
 
 import bisect
 import io
-import threading
-from collections import OrderedDict
-from collections.abc import Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from pathlib import Path
 from typing import Literal
 
@@ -185,15 +183,14 @@ _NEEDED_COLUMNS = ("image", "label", "image_id", "orig_index")
 
 
 @register_dataset("imagenet-parquet")
-class ImageNetParquet(Sequence):
-    """Sequence-conforming loader over pre-shuffled ImageNet Parquet shards.
+class ImageNetParquet(Iterable):
+    """Sequential-only loader over pre-shuffled ImageNet Parquet shards.
 
-    Produced by `rsrch_data/scripts/pack_in1k_to_parquet.py`. Intended for
-    *sequential* access (e.g. `DataLoader(..., shuffle=False)`): the on-disk
-    row order is already a random permutation from pack time, so random
-    per-epoch reshuffling on top of this would scatter reads across row
-    groups and defeat the cache below, without adding any real randomness
-    that isn't already there.
+    Produced by `rsrch_data/scripts/pack_in1k_to_parquet.py`. The rows are
+    permuted, and the dataset is meant to be read sequentially during training
+    procedure.
+
+    There's an extra method `iter_from` for skipping first $K$ rows.
 
     File structure:
     ```
@@ -208,20 +205,15 @@ class ImageNetParquet(Sequence):
         self,
         data_root: str | Path,
         split: Literal["train", "val"],
-        row_group_cache_size: int = 4,
     ) -> None:
         """Index parquet shard footers (no data read) for `split`.
 
         :param data_root: Directory of Parquet shards, as written by
             `pack_in1k_to_parquet.py`.
         :param split: Which split's shards to load.
-        :param row_group_cache_size: Number of decoded row groups to keep
-            cached. Sized for sequential access by a handful of concurrent
-            reader threads, not for absorbing a fully random access pattern.
         """
         self.root = Path(data_root).expanduser()
         self.split = split
-        self.row_group_cache_size = row_group_cache_size
 
         self.files = sorted(self.root.glob(f"{split}-*.parquet"))
         if not self.files:
@@ -241,9 +233,6 @@ class ImageNetParquet(Sequence):
             self._row_group_rows.append(group_rows)
             self._offsets.append(self._offsets[-1] + sum(group_rows))
 
-        self._cache: OrderedDict[tuple[int, int], pa.Table] = OrderedDict()
-        self._cache_lock = threading.Lock()
-
     def __len__(self) -> int:
         """Return total number of samples across all shards."""
         return self._offsets[-1]
@@ -259,42 +248,8 @@ class ImageNetParquet(Sequence):
         msg = f"Index {idx} out of range for {self!r}"
         raise IndexError(msg)
 
-    def _read_row_group(self, file_idx: int, row_group_idx: int) -> pa.Table:
-        """Return a row group as a `pyarrow.Table`, caching on a cache miss.
-
-        Reads only the columns `__getitem__` actually uses (`wnid` is never
-        read back out), and keeps the result as a columnar `Table` rather
-        than eagerly materializing it into per-row Python dicts -- cheaper
-        given `__getitem__` only ever needs one row's fields at a time out of
-        it, not all of them.
-
-        On a concurrent miss, two threads may redundantly decode the same row
-        group; harmless (idempotent, no data race), just wasted work, and
-        rare given this is meant for sequential access.
-        """
-        key = (file_idx, row_group_idx)
-        with self._cache_lock:
-            table = self._cache.get(key)
-            if table is not None:
-                self._cache.move_to_end(key)
-                return table
-
-        pf = pq.ParquetFile(self.files[file_idx])
-        table = pf.read_row_group(row_group_idx, columns=list(_NEEDED_COLUMNS))
-
-        with self._cache_lock:
-            self._cache[key] = table
-            self._cache.move_to_end(key)
-            while len(self._cache) > self.row_group_cache_size:
-                self._cache.popitem(last=False)
-        return table
-
-    def __getitem__(self, idx: int) -> ParquetSample:
-        """Return sample #idx, reading its row group (cached) as needed."""
-        if idx < 0:
-            idx += len(self)
-        file_idx, row_group_idx, local_offset = self._locate(idx)
-        table = self._read_row_group(file_idx, row_group_idx)
+    @staticmethod
+    def _row_to_sample(table: pa.Table, local_offset: int) -> ParquetSample:
         return {
             "image": Image.open(
                 io.BytesIO(table.column("image")[local_offset].as_py())
@@ -303,6 +258,43 @@ class ImageNetParquet(Sequence):
             "image_id": table.column("image_id")[local_offset].as_py(),
             "orig_index": table.column("orig_index")[local_offset].as_py(),
         }
+
+    def iter_from(self, start: int = 0) -> Iterator[ParquetSample]:
+        """Iterate samples sequentially, starting at global row `start`.
+
+        Reads one row group at a time, in order, with no cache and no lock:
+        this is meant for exactly one sequential reader (see class
+        docstring), so there's nothing to coordinate. `start` costs one
+        `_locate` bisect (no data read) -- the first row group read then
+        lands exactly on `start`'s row group, not row 0, so resuming mid-run
+        is cheap regardless of how far in `start` is.
+
+        :param start: Global row index to begin at (negative indexes from
+            the end, as with `list`).
+        """
+        if start < 0:
+            start += len(self)
+        if not 0 <= start <= len(self):
+            msg = f"start={start} out of range for {self!r}"
+            raise IndexError(msg)
+        if start == len(self):
+            return
+
+        file_idx, row_group_idx, local_offset = self._locate(start)
+        while file_idx < len(self.files):
+            pf = pq.ParquetFile(self.files[file_idx])
+            table = pf.read_row_group(row_group_idx, columns=list(_NEEDED_COLUMNS))
+            for row in range(local_offset, table.num_rows):
+                yield self._row_to_sample(table, row)
+            local_offset = 0
+            row_group_idx += 1
+            if row_group_idx >= len(self._row_group_rows[file_idx]):
+                row_group_idx = 0
+                file_idx += 1
+
+    def __iter__(self) -> Iterator[ParquetSample]:
+        """Iterate every sample sequentially, from the start."""
+        return self.iter_from(0)
 
     def meta(self) -> Metadata:
         """Build image-classification metadata from the synset mapping file."""

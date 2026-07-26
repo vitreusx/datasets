@@ -35,7 +35,9 @@ class Args(BaseModel):
     row_group_size: int = 2000
     """Rows per Parquet row group."""
     max_shard_size: str = "2GiB"
-    """Size cap (of raw image bytes) per shard file before rolling over."""
+    """Size cap (actual on-disk bytes) per shard file before rolling over --
+    a soft cap: shards can end up slightly larger, by up to one row group's
+    worth of data (see write_sharded_parquet)."""
     seed: int = 0
     """Seed for the one-time pre-shuffle."""
 
@@ -81,7 +83,6 @@ def _pack_split(
         PARQUET_COMPRESSION,
         row_group_size,
         max_shard_bytes,
-        size_key="image",
     )
 
 
