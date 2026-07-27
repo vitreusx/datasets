@@ -81,15 +81,13 @@ def main() -> None:
     tyro_conf = (tyro.conf.OmitArgPrefixes, tyro.conf.OmitSubcommandPrefixes)
     args = tyro.cli(Args, config=tyro_conf)
 
-    dest = Path(args.output_path)
-
     tokenizer = Tokenizer.from_file(args.tokenizer)
     loader = _BatchedLoader(args.dataset, args.batch_size)
 
     tokenize_text_dataset(
         loader,
         tokenizer,
-        dest,
+        Path(args.output_path),
         max_shard_size=args.max_shard_size,
         tokenizer_id=args.tokenizer,
     )

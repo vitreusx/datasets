@@ -30,7 +30,99 @@ class Split(TypedDict):
     end: int
 
 
-def write_token_docs(  # noqa: PLR0915
+class _TokenWriter:
+    """Stateful writer for a flat uint16 token file, with shard rotation.
+
+    Shards are written to temp files and only moved into place (and the
+    metadata/index sidecars written) on `close()`, so a crash mid-write
+    never leaves a corrupt `dest` behind.
+    """
+
+    def __init__(
+        self,
+        dest: str | Path,
+        *,
+        max_shard_size: str,
+        tokenizer_id: str | None,
+    ) -> None:
+        self._dest = Path(dest)
+        self._max_tokens_per_shard = parse_size(max_shard_size) // 2  # uint16 = 2 bytes
+        self._tokenizer_id = tokenizer_id
+        self._dest.parent.mkdir(parents=True, exist_ok=True)
+
+        self._doc_offsets: list[int] = []
+        self.total_tokens = 0
+        self.num_documents = 0
+        self._shard_starts: list[int] = [0]
+        self._shard_tmp_paths: list[Path] = []
+        self._current_shard_tokens = 0
+        self._shard_file, _ = self._open_shard()
+
+    def _open_shard(self) -> tuple[object, Path]:
+        fd, path_str = tempfile.mkstemp(suffix=self._dest.suffix, dir=self._dest.parent)
+        path = Path(path_str)
+        self._shard_tmp_paths.append(path)
+        return open(fd, "wb"), path  # noqa: PTH123
+
+    def write(self, ids: np.ndarray) -> None:
+        """Append a single tokenized document."""
+        if self._current_shard_tokens >= self._max_tokens_per_shard:
+            self._shard_file.close()
+            self._shard_starts.append(self.total_tokens)
+            self._shard_file, _ = self._open_shard()
+            self._current_shard_tokens = 0
+
+        self._doc_offsets.append(self.total_tokens)
+        ids.tofile(self._shard_file)
+        self.total_tokens += len(ids)
+        self._current_shard_tokens += len(ids)
+        self.num_documents += 1
+
+    def abort(self) -> None:
+        """Discard temp shards after a failed write."""
+        self._shard_file.close()
+        for p in self._shard_tmp_paths:
+            p.unlink(missing_ok=True)
+
+    def close(self) -> None:
+        """Finalize: move shards into place, write metadata + index sidecars."""
+        self._shard_file.close()
+
+        num_shards = len(self._shard_tmp_paths)
+        splits: dict[str, Split] = {}
+
+        if num_shards == 1:
+            shutil.move(self._shard_tmp_paths[0], self._dest)
+        else:
+            self._shard_starts.append(self.total_tokens)
+            for i, tmp_path in enumerate(self._shard_tmp_paths):
+                shard_name = (
+                    f"{self._dest.stem}-{i:05d}-of-{num_shards:05d}{self._dest.suffix}"
+                )
+                shard_path = self._dest.parent / shard_name
+                shutil.move(tmp_path, shard_path)
+                splits[shard_path.name] = {
+                    "start": self._shard_starts[i],
+                    "end": self._shard_starts[i + 1],
+                }
+
+        metadata: Metadata = {
+            "num_documents": self.num_documents,
+            "num_tokens": self.total_tokens,
+            "splits": splits,
+        }
+        if self._tokenizer_id is not None:
+            metadata["tokenizer"] = self._tokenizer_id
+        (self._dest.parent / f"{self._dest.name}.json").write_text(
+            json.dumps(metadata, indent=2)
+        )
+
+        np.array(self._doc_offsets, dtype=np.uint64).tofile(
+            self._dest.parent / f"{self._dest.stem}.index.bin"
+        )
+
+
+def write_token_docs(
     docs: Iterable[np.ndarray],
     dest: str | Path,
     *,
@@ -46,81 +138,50 @@ def write_token_docs(  # noqa: PLR0915
     shards if `max_shard_size` is exceeded), `{dest.name}.json`,
     `{dest.stem}.index.bin`.
     """
-    dest = Path(dest)
-    max_bytes = parse_size(max_shard_size)
-    max_tokens_per_shard = max_bytes // 2  # uint16 = 2 bytes each
-
-    dest.parent.mkdir(parents=True, exist_ok=True)
-
-    doc_offsets: list[int] = []
-    total_tokens = 0
-    num_documents = 0
-    shard_starts: list[int] = [0]
-    shard_tmp_paths: list[Path] = []
-
-    def _open_shard() -> tuple[object, Path]:
-        fd, path_str = tempfile.mkstemp(suffix=dest.suffix, dir=dest.parent)
-        path = Path(path_str)
-        shard_tmp_paths.append(path)
-        return open(fd, "wb"), path  # noqa: PTH123
-
-    shard_file, _ = _open_shard()
-    current_shard_tokens = 0
-
+    writer = _TokenWriter(
+        dest, max_shard_size=max_shard_size, tokenizer_id=tokenizer_id
+    )
     try:
         pbar = tqdm(docs, unit="doc", total=total, disable=not progress)
         for ids in pbar:
-            if current_shard_tokens >= max_tokens_per_shard:
-                shard_file.close()
-                shard_starts.append(total_tokens)
-                shard_file, _ = _open_shard()
-                current_shard_tokens = 0
-
-            doc_offsets.append(total_tokens)
-            ids.tofile(shard_file)
-            total_tokens += len(ids)
-            current_shard_tokens += len(ids)
-            num_documents += 1
-            pbar.set_postfix(docs=num_documents, tok=f"{total_tokens / 1e9:.2f}B")
-
-        shard_file.close()
-        shard_file = None
-
+            writer.write(ids)
+            pbar.set_postfix(
+                docs=writer.num_documents, tok=f"{writer.total_tokens / 1e9:.2f}B"
+            )
     except Exception:
-        if shard_file is not None:
-            shard_file.close()
-        for p in shard_tmp_paths:
-            p.unlink(missing_ok=True)
+        writer.abort()
         raise
+    writer.close()
 
-    num_shards = len(shard_tmp_paths)
-    splits: dict[str, Split] = {}
 
-    if num_shards == 1:
-        shutil.move(shard_tmp_paths[0], dest)
-    else:
-        shard_starts.append(total_tokens)
-        for i, tmp_path in enumerate(shard_tmp_paths):
-            shard_name = f"{dest.stem}-{i:05d}-of-{num_shards:05d}{dest.suffix}"
-            shard_path = dest.parent / shard_name
-            shutil.move(tmp_path, shard_path)
-            splits[shard_path.name] = {
-                "start": shard_starts[i],
-                "end": shard_starts[i + 1],
-            }
+def _iter_tokenized_docs(
+    loader: Iterable[Batch],
+    tokenizer: Tokenizer,
+    *,
+    total: int | None,
+    progress: bool,
+) -> Iterator[np.ndarray]:
+    pbar = tqdm(loader, unit="batch", total=total, disable=not progress)
+    num_documents = 0
+    total_tokens = 0
+    for batch in pbar:
+        for enc in tokenizer.encode_batch(batch["text"]):
+            ids = np.array(enc.ids, dtype=np.uint16)
+            num_documents += 1
+            total_tokens += len(ids)
+            yield ids
+        pbar.set_postfix(docs=num_documents, tok=f"{total_tokens / 1e9:.2f}B")
 
-    metadata: Metadata = {
-        "num_documents": num_documents,
-        "num_tokens": total_tokens,
-        "splits": splits,
-    }
-    if tokenizer_id is not None:
-        metadata["tokenizer"] = tokenizer_id
-    (dest.parent / f"{dest.name}.json").write_text(json.dumps(metadata, indent=2))
 
-    np.array(doc_offsets, dtype=np.uint64).tofile(
-        dest.parent / f"{dest.stem}.index.bin"
-    )
+def _loader_len(loader: Iterable[Batch]) -> int | None:
+    # `hasattr(loader, "__len__")` isn't reliable here -- a wrapper like
+    # `_BatchedLoader` can define `__len__` unconditionally and have it
+    # raise `TypeError` itself when the underlying dataset has none, so
+    # catching that directly is the robust check.
+    try:
+        return len(loader)  # type: ignore[arg-type]
+    except TypeError:
+        return None
 
 
 def tokenize_text_dataset(
@@ -144,32 +205,13 @@ def tokenize_text_dataset(
     - `{dest.stem}.index.bin`, containing the start indices (global offsets) for
       each document
     """
-    # `hasattr(loader, "__len__")` isn't reliable here -- a wrapper like
-    # `_BatchedLoader` can define `__len__` unconditionally and have it
-    # raise `TypeError` itself when the underlying dataset has none, so
-    # catching that directly is the robust check.
-    try:
-        total = len(loader)
-    except TypeError:
-        total = None
+    total = _loader_len(loader)
 
     # Batch-level progress bar (with docs=/tok= postfix) lives here, so
     # `write_token_docs` sees a flat, un-batched generator and runs with its
     # own progress bar disabled.
-    def _tokenize_docs() -> Iterator[np.ndarray]:
-        pbar = tqdm(loader, unit="batch", total=total, disable=not progress)
-        num_documents = 0
-        total_tokens = 0
-        for batch in pbar:
-            for enc in tokenizer.encode_batch(batch["text"]):
-                ids = np.array(enc.ids, dtype=np.uint16)
-                num_documents += 1
-                total_tokens += len(ids)
-                yield ids
-            pbar.set_postfix(docs=num_documents, tok=f"{total_tokens / 1e9:.2f}B")
-
     write_token_docs(
-        _tokenize_docs(),
+        _iter_tokenized_docs(loader, tokenizer, total=total, progress=progress),
         dest,
         progress=False,
         max_shard_size=max_shard_size,

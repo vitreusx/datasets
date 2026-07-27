@@ -52,9 +52,15 @@ def main(args: Args) -> None:
         else:
             train_indices.append(int(i))
 
-    train_indices.sort()
-    val_indices.sort()
-
+    # Neither list is sorted back to original document order: each document
+    # is read exactly once regardless (train indices are never touched
+    # above), so sorting only changes access order, not pass count -- and
+    # `train_loader`'s own runtime shuffle already reads the training split
+    # in this same random-access pattern (tolerated there since profiling
+    # shows this pipeline is compute- not data-bound), so there's nothing to
+    # gain by special-casing it here. Leaving both in permutation order also
+    # means train.bin itself is now pre-shuffled at rest -- see
+    # `Config.train_shuffle` in `gpt/train.py`.
     tokenizer_id = source.meta().get("tokenizer")
     data_root = Path(args.data_root)
 
